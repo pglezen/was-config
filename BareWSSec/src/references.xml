@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.1">
+<info>
+  <title>References</title>
+</info>
+
+<bibliolist>
+  
+  <bibliomixed xml:id="ref.WASInfoCenter" >
+    <title>WAS 8.0 Info Center</title>,
+    <author>
+      <orgname>IBM</orgname>
+    </author>.
+    Online: 
+    <link xlink:href="http://pic.dhe.ibm.com/infocenter/wasinfo/v8r0/"/>
+  </bibliomixed>
+  
+  <bibliomixed xml:id="ref.WSSecSpec1.2" >
+    <title>WS-SecurityPolicy 1.2 Specification</title>,
+    <date>December, 2006</date>. 
+    <author>
+      <orgname>OASIS</orgname>
+    </author>.
+    Online: 
+    <link xlink:href="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200512"/>
+  </bibliomixed>
+
+</bibliolist>
+</section>

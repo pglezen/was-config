@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article [
+  <!ENTITY author      SYSTEM "pfg.xml">
+  <!ENTITY introduction SYSTEM "introduction.xml">
+  <!ENTITY encryption SYSTEM "encryption.xml">
+  <!ENTITY references SYSTEM "references.xml">
+]>
+<article xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+  <info>
+    <title>Bare WS-Security with WebSphere Application Server</title>
+    <date>June, 2013</date>
+    &author;
+    <abstract>
+      <para>
+        Each article in the Bare WS-Security series demonstrates an aspects
+        WS-Security policy configuration in isolation to clarify which aspects
+        of the configuration are essential.
+      </para>
+    </abstract>
+  </info>
+  
+
+  <xi:include href="introduction.xml"/>
+  <xi:include href="encryption.xml"/>
+  <xi:include href="references.xml"/>
+
+</article>

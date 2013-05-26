@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article [
+  <!ENTITY author SYSTEM "pfg.xml">
+  <!ENTITY body   SYSTEM "jaxws.xml">
+  <!ENTITY refs   SYSTEM "references.xml">
+]>
+<article xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+  <info>
+    <title>Bare JAX-WS</title>
+    <date>May, 2013</date>
+    &author;
+    <abstract>
+      <para>
+        This document is a member of the Bare Series of WAS
+        topics distributed in both stand-alone and in collection form.
+      </para>
+    </abstract>
+  </info>
+  
+  <section xml:id="sec.chap1">&body;</section>
+  &refs;
+</article>

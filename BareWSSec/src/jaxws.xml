@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<info>
+  <title>Bare JAX-WS Web Services</title>
+</info>
+
+<section xml:id="sec.jaxws.clients">
+  <info>
+    <title>JAX-WS Clients</title>
+  </info>
+  
+<para>
+<emphasis role="bold">J</emphasis>ava 
+<emphasis role="bold">A</emphasis>PI for 
+<emphasis role="bold">X</emphasis>ML - 
+<emphasis role="bold">W</emphasis>eb 
+<emphasis role="bold">S</emphasis>ervices 
+(JAX-WS) is a specification that addresses
+Java web services development.  For web service clients, this amounts to
+generating Java client service stubs and XML bindings for use in invoking
+the web service.  <xref linkend="fig.jaxws.client.overview"/> illustrates how
+these components fit together.  The green and yellow components
+are generated from the WSDL.  The green is the service stub.  Its objects
+make the remote call to the service provider.  The yellow represents
+the XML-type-to-Java-type bindings (or simply XML bindings).  The XML
+bindings are actually addressed by a separate specification called
+<emphasis role="bold">J</emphasis>ava
+<emphasis role="bold">A</emphasis>PI for
+<emphasis role="bold">X</emphasis>ML
+<emphasis role="bold">B</emphasis>indings
+(JAXB) that is referenced by JAX-WS.  This is part of what makes JAX-WS
+so much more powerful than its predecessor,
+<emphasis role="bold">J</emphasis>ava 
+<emphasis role="bold">A</emphasis>PI for 
+<emphasis role="bold">X</emphasis>ML - 
+<emphasis role="bold">R</emphasis>emote 
+<emphasis role="bold">P</emphasis>rocedure
+<emphasis role="bold">C</emphasis>all
+(JAX-RPC).
+
+</para>
+<figure xml:id="fig.jaxws.client.overview">
+  <title>JAX-WS Overview</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/jaxwsOverview.jpg" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/jaxwsOverview.jpg" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+<para>
+Another recent improvement is the inclusion of the JAX-WS runtime in the
+Java 6 SE (standard edition).  One no longer needs to reference special
+"thin client" libraries to make web service clients run.  The generated
+bindings run directly against a Java 6 or later runtime.  And not only
+are the runtime classes available in the JRE, the 
+<firstterm>wsimport</firstterm> utility, responsible for generating
+the bindings from the WSDL, is
+part of the JDK on any platform.  No special IDEs or tools are needed.
+</para>
+<para>
+The XML bindings are Java classes that map to the XML schema types defined
+in the WSDL.  (One says that a Java type is bound to the XML schema type.)
+These types play the role of parameters for the service invocation.  The
+invocation functions themselves are methods on the service stub objects.
+The bindings objects are passed as parameters to the service objects.
+</para>
+<para>
+The generated service and binding objects tie into the JAX-WS runtime.
+This may be part of the JDK as in the diagram above.  Or it may be implemented
+by a vendor such as Apache CXF or IBM WebSphere Application Server.  In any
+case, it is responsible for 
+</para>
+<itemizedlist>
+  <listitem>marshaling the data structures into a serialized XML stream, and</listitem>
+  <listitem>implementing the network protocol to transport the XML stream
+     to the server.</listitem>
+</itemizedlist>
+<para>
+Finally, the client code is the consumer of the service.  It issues the request
+to the service stub and does whatever it requires with the result.
+</para>
+
+<para>
+Web service clients may be <firstterm>managed</firstterm> or 
+<firstterm>unmanaged</firstterm>.  Managed clients are typically associated with
+an application server.  The client is managed in the sense that aspects of its
+configuration are controllable through the administrative capabilities of the
+application server.  References to the service stub objects are usually 
+retrieved from JNDI.
+
+Unmanaged clients, also known as <firstterm>thin clients</firstterm>, do not rely
+on any underlying application server structure for configuration.  Their service
+client proxy objects are directly instantiated. Their configuration is usually
+done by setting properties on the service stub instances.  There is nothing wrong
+with running a thin client inside an application server.  It simply won't benefit
+from enterprise manageability features.
+</para>
+
+<section xml:id="sec.jaxws.clients.thin">
+<info>
+  <title>Thin Clients</title>
+</info>
+
+</section>
+<para>
+A thin client is one that does not expect the presense of any application
+server infrastructure.  That's not to say a thin client can't run within
+an application server container.  It simply doesn't depend on the container
+for resources or initialization.
+</para>
+<para>
+Generating a thin client is easy and requires nothing more than a valid WSDL
+and JDK 6.  The command for generating the JAX-WS bindings is
+<emphasis role="bold">wsimport</emphasis>.
+</para>
+</section>

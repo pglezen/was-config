@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<project name="BareWSSec-PDF" basedir="..">
+
+  <description>
+   An Ant script for building DocBook in Eclipse as a PDF file.
+   </description>
+  
+  <include file="build-core.xml" as="core"/>
+
+  <property name="dir.pdf"  location="pdf" />
+  <property name="xslt.pdf" location="${dir.pdf}/pdf-customizations.xsl" />
+  <property name="dir.fo"   location="softlinks/fop"/>
+
+  <target name="init" depends="core.init" description="PDF Init">
+    <echo>PDF Directory  = ${dir.pdf}  </echo>
+    <echo>PDF Stylesheet = ${xslt.pdf} </echo>
+    <echo>FOP Install    = ${dir.fo}   </echo>
+  </target>
+
+
+  <!-- ================================================================
+       Create PDF.
+       ================================================================
+    -->
+  <target name="pdf" depends="init" description="Create PDF Format.">
+    <property name="out.dir" location="out/pdf" />
+    <property name="out.fo"  value="${master.root}.fo" />
+    <property name="out.pdf" value="${master.root}.pdf" />
+
+    <copy todir="${out.dir}/images" failonerror="true">
+      <fileset dir="${dir.images}" />
+    </copy>
+
+    <dependset verbose="true">
+      <srcfilelist refid="docbook.src" />
+      <srcfilelist dir="build" files="build-core.xml build-pdf.xml"/>
+      <srcfilelist dir="${dir.pdf}/pdf-customizations.pdf"/>
+      <targetfilelist dir="${out.dir}" files="${out.fo} ${out.pdf}" />
+    </dependset>
+
+    <xslt in="${dir.src}/${master.file}" out="${out.dir}/${out.fo}" style="${xslt.pdf}">
+      <factory name="org.apache.xalan.processor.TransformerFactoryImpl" />
+      <param name="xref.with.number.and.title" expression="0" />
+      <param name="body.start.indent"          expression="0pt"/>
+      <param name="section.autolabel"          expression="1" />
+      <param name="use.extensions"             expression="1" />
+      <param name="fop1.extensions"            expression="1" />
+      <param name="callouts.extension"         expression="1" />
+      <param name="bibliography.numbered"      expression="1" />
+      <param name="footer.column.widths"       expression="2 1 2" />
+      <param name="footer.msg"                 expression="For General Distribution"/>
+    </xslt>
+    
+    <java classname="org.apache.fop.cli.Main" fork="true">
+      <arg line="-fo ${out.dir}/${out.fo} -pdf ${out.dir}/${out.pdf}"/>
+      <classpath>
+        <pathelement location="${dir.fo}/build/fop.jar"/>
+        <fileset dir="${dir.fo}/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </java>
+
+  </target>
+
+  <target name="clean.pdf" description="Clean up PDF directory.">
+    <delete dir="${out.dir}" failonerror="false" />
+  </target>
+
+</project>

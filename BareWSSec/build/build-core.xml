@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<project name="BareWSSec-Core" basedir="..">
+
+  <description>
+   An Ant script for building the DocBook with Eclipse.
+   </description>
+
+  <property name="dir.src"     location="src" />
+  <property name="dir.images"  location="images" />  
+  <property name="dir.docbook" location="softlinks/docbook" />
+  <property name="master.root" value="jaxws"/>
+  <property name="master.file" value="${master.root}-master.xml"/>
+
+  <target name="init">
+    <tstamp>
+      <format property="BuildTime" pattern="MMM dd, hh:mma" />
+    </tstamp>
+    <exec executable="hostname" outputproperty="build.machine" />
+    <echo>Build Machine   = ${build.machine}</echo>
+    <echo>Build Started   = ${BuildTime}</echo>
+    <echo>DocBook Install = ${dir.docbook}</echo>
+    <echo>Base Directory  = ${basedir}</echo>
+    <echo>Image Directory = ${dir.images}</echo>
+    <echo>Document Master = ${master.file}</echo>
+  </target>
+
+  <filelist id="docbook.src" dir="${dir.src}">
+    <file name="${master.file}" />
+  	<file name="jaxws.xml" />
+    <file name="pfg.xml" />
+    <file name="references.xml" />
+  </filelist>
+
+</project>

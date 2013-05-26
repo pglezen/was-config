@@ -1,0 +1,12 @@
+<!-- Author information to include -->
+<author>
+  <personname>
+    <firstname>Paul</firstname>
+    <surname>Glezen</surname>
+  </personname>
+  <affiliation>
+    <jobtitle>IT Specialist</jobtitle>
+    <orgname>IBM</orgname>
+    <orgdiv>Software Services for WebSphere</orgdiv>
+  </affiliation>
+</author>
