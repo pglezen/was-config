@@ -1,0 +1,66 @@
+.emphasis {
+	font-weight: bold;
+}
+.guilabel {
+	font-weight: bold;
+}
+.guibutton {
+	font-weight: bold;
+}
+.guimenu {
+	font-weight: bold;
+}
+.guimenuitem {
+	font-weight: bold;
+}
+.article {
+	width: 800;
+	padding: 10px 10px;
+	border: 2px solid brown;
+	border-radius: 10px;
+}
+.titlepage .title {
+}
+.abstract {
+   padding: 10px 20px;
+   width: 450px;
+}
+.abstract p {
+   font-style: italic;
+}
+.abstract p.title {
+   font-style: normal;
+}
+.titlepage .author {
+	border: 2px solid blue;
+	border-radius: 10px;
+	padding: 2px 2px 2px 10px;
+	width: 250px;
+	float: right;
+}
+
+.titlepage h3.author {
+	border: none;
+	margin: 0 0 ;
+}
+.titlepage .author .affiliation {
+	padding-top: 30px;
+}
+.toc {
+}
+.bibliolist .title {
+	font-style: italic;
+}
+.bibliolist .author {
+	font-weight: bold;
+	padding-right: 10px;
+}
+.article {	
+	background-color: white;
+}
+.article > .section {
+	margin: 10px 10px;
+}
+.article > .section p {
+	font-family: Baskerville, Times, serif;
+}
