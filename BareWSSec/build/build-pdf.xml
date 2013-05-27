@@ -48,7 +48,10 @@
       <param name="callouts.extension"         expression="1" />
       <param name="bibliography.numbered"      expression="1" />
       <param name="footer.column.widths"       expression="2 1 2" />
-      <param name="footer.msg"                 expression="For General Distribution"/>
+      <param name="footer.msg"                 expression="Incomplete Draft"/>
+      <param name="draft.mode"                 expression="yes"/>
+      <param name="draft.watermark.image"      expression="images/draft.png"/>
+
     </xslt>
     
     <java classname="org.apache.fop.cli.Main" fork="true">

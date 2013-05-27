@@ -48,6 +48,8 @@
       <param name="use.extensions"             expression="1" />
       <param name="callouts.extension"         expression="1" />
       <param name="bibliography.numbered"      expression="1" />
+      <param name="draft.mode"                 expression="yes"/>
+      <param name="draft.watermark.image"      expression="images/draft.png"/>
     </xslt>
   </target>
 

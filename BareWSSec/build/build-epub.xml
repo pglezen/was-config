@@ -49,6 +49,8 @@
       <param name="base.dir"                   expression="${out.dir}/OEBPS/"/>
       <param name="epub.oebps.dir"             expression="OEBPS/"/>
       <param name="epub.metainf.dir"           expression="${out.dir}/META-INF/"/>
+      <param name="draft.mode"                 expression="yes"/>
+      <param name="draft.watermark.image"      expression="images/draft.png"/>
     </xslt>
     
     <delete file="${out.dir}/${dummy.file}"/>
