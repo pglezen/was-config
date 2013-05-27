@@ -55,7 +55,7 @@
   </target>
 
   <target name="zip.epub" description="Create EPUB archive.">
-    <zip destfile="${basedir}/out/MyProject.epub" basedir="${out.dir}"/>
+    <zip destfile="${basedir}/out/${master.root}.epub" basedir="${out.dir}"/>
   </target>
 
   <target name="clean.epub" description="Clean up EPUB directory.">
