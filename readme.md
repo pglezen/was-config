@@ -1,11 +1,14 @@
-was-config
-==========
+WAS Configuration Articles
+==========================
 
 I use this repository to source control documents I generate
 from working with WebSphere Application Server (WAS).  I have
 quite a backlog of topics to document.  My plan is to document
 small focused topics at a time.  This way I can combine them
 as needed into larger topics or standalone.
+
+Renderings are available on the 
+[pages site](http://pglezen.github.io/was-config/).
 
 I enter the document source in [DocBook](http://docbook.org)
 format and render the output using DocBook stylesheets.  You
