@@ -114,6 +114,77 @@ for resources or initialization.
 <para>
 Generating a thin client is easy and requires nothing more than a valid WSDL
 and JDK 6.  The command for generating the JAX-WS bindings is
-<emphasis role="bold">wsimport</emphasis>.
+<emphasis role="bold">wsimport</emphasis>.  It should be in your command
+line path so long as your JDK is.  To verify its version and presence in
+your path, query its version.
 </para>
+<screen>$ wsimport -version
+JAX-WS RI 2.1.6 in JDK 6
+$
+</screen>
+<para>
+We'll use the WSDL listed in <xref linkend="sec.listings.ccQuery.wsdl"/>.
+It's a standalone WSDL file with a single operation that queries
+information about a credit card account.  Let's start with the following
+invocation of wsimport.
+<screen>thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws ccQuery.wsdl
+parsing WSDL...
+generating code...
+compiling code...
+thinclient$
+</screen>
+The options have the following meanings.
+<itemizedlist>
+<listitem><option>-d</option> directory into which the compiled class files are placed</listitem>
+<listitem><option>-s</option> directory into which the source code is generated</listitem>
+<listitem><option>-p</option> package into which the source code is generated</listitem>
+</itemizedlist>
+If you run this command without first creating the <filename class="directory">bin</filename> 
+and <filename class="directory">src</filename> directories, the command will give an error.
+Otherwise you get the following generated bindings classes.
+
+<screen>thinclient/src/org/acme/cc/jaxws$ ls -l
+total 64
+-rw-r--r--  1 pglezen  staff  1073 Jun 16 13:42 CCPortType.java
+-rw-r--r--  1 pglezen  staff  2341 Jun 16 13:42 CCService.java
+-rw-r--r--  1 pglezen  staff  1363 Jun 16 13:42 ObjectFactory.java
+-rw-r--r--  1 pglezen  staff  1813 Jun 16 13:42 QueryFault.java
+-rw-r--r--  1 pglezen  staff  1053 Jun 16 13:42 QueryFaultMsg.java
+-rw-r--r--  1 pglezen  staff  2061 Jun 16 13:42 QueryRequest.java
+-rw-r--r--  1 pglezen  staff  3727 Jun 16 13:42 QueryResponse.java
+-rw-r--r--  1 pglezen  staff   108 Jun 16 13:42 package-info.java
+thinclient/src/org/acme/cc/jaxws$ 
+</screen>
+
+The problem with this generation of bindings concerns the
+<classname>CCService</classname> class.  It needs to find a copy of the WSDL and
+without any additional arguments to <command>wsimport</command>, it uses the
+fully-qualified path name to the from which the bindings were generated.
+
+<programlisting>URL baseUrl;
+baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
+url = new URL(baseUrl, "file:/Users/pglezen/thinclient/ccQuery.wsdl");
+</programlisting>
+
+Clearly we don't want code referencing an absolute path on a developer's
+workstation.  We provide information to <command>wsimport</command> via
+the <option>-wsdllocation</option>.  From the code snippet above, 
+one can see that the base
+of the URL begins with the package directory of the class itself.
+The WSDL will be found if we add it to the directory holding
+<filename>CCService.java</filename>.
+
+<screen>thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws -wsdllocation ccQuery.wsdl ccQuery.wsdl
+</screen>
+
+This results in the following snippet in <filename>CCService.java</filename>.
+
+<programlisting>URL baseUrl;
+baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
+url = new URL(baseUrl, "ccQuery.wsdl");
+</programlisting>
+
+</para>
+
+
 </section>

@@ -3,6 +3,7 @@
   <!ENTITY author SYSTEM "pfg.xml">
   <!ENTITY body   SYSTEM "jaxws.xml">
   <!ENTITY refs   SYSTEM "references.xml">
+  <!ENTITY ccwsdl SYSTEM "listings/ccQuery.wsdl">
 ]>
 <article xmlns="http://docbook.org/ns/docbook"
          xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -23,5 +24,14 @@
   </info>
   
   <section xml:id="sec.chap1">&body;</section>
+  
+  <section xml:id="sec.listings">
+    <info><title>Source Listings</title></info>
+    
+    <section xml:id="sec.listings.ccQuery.wsdl">
+      <info><title><filename>ccQuery.wsdl</filename></title></info>
+      <programlisting>&ccwsdl;</programlisting>
+    </section>
+  </section>
   &refs;
 </article>

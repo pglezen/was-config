@@ -29,6 +29,7 @@
   	<file name="jaxws.xml" />
     <file name="pfg.xml" />
     <file name="references.xml" />
+  	<file name="listings/ccQuery.wsdl"/>
   </filelist>
 
 </project>

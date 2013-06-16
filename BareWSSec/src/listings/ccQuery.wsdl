@@ -1,0 +1,84 @@
+<![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="urn:issw:bare:wssec:cc:query" 
+                        xmlns:tns="urn:issw:bare:wssec:cc:query" 
+                        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+                        xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" 
+                        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <schema targetNamespace="urn:issw:bare:wssec:cc:query" 
+            xmlns="http://www.w3.org/2001/XMLSchema">
+      <element name="QueryRequest">
+        <complexType>
+          <sequence>
+            <element name="ccNo"     type="xsd:string"/>
+            <element name="lastName" type="xsd:string"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="QueryResponse">
+        <complexType>
+          <sequence>
+            <element name="ccNo"      type="string"/>
+            <element name="acctNo"    type="string"/>
+            <element name="lastName"  type="string"/>
+            <element name="firstName" type="string"/>
+            <element name="balance"   type="int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="QueryFault">
+        <complexType>
+          <sequence>
+            <element name="ccNo"  type="string"/>
+            <element name="txnId" type="int"/>
+          </sequence>
+        </complexType>
+      </element>
+    </schema>
+  </wsdl:types>
+
+  <wsdl:message name="QueryRequestMsg">
+    <wsdl:part element="tns:QueryRequest" name="parameters"/>
+  </wsdl:message>
+
+  <wsdl:message name="QueryResponseMsg">
+    <wsdl:part element="tns:QueryResponse" name="parameters"/>
+  </wsdl:message>
+
+  <wsdl:message name="QueryFaultMsg">
+    <wsdl:part element="tns:QueryFault" name="parameters"/>
+  </wsdl:message>
+
+  <wsdl:portType name="CCPortType">
+    <wsdl:operation name="query">
+       <wsdl:input  message="tns:QueryRequestMsg"  name="queryRequest"/>
+       <wsdl:output message="tns:QueryResponseMsg" name="queryResponse"/>
+       <wsdl:fault  message="tns:QueryFaultMsg"    name="queryFault"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="CCSoapBinding" type="tns:CCPortType">
+    <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="query">
+      <wsdlsoap:operation soapAction="ccQuery" style="document"/>
+
+      <wsdl:input name="queryRequest">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:input>
+
+      <wsdl:output name="queryResponse">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:output>
+
+      <wsdl:fault name="queryFault">
+        <wsdlsoap:fault name="queryFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="CCService">
+    <wsdl:port binding="tns:CCSoapBinding" name="CCService">
+      <wsdlsoap:address location="http://localhost/services/statement"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>]]>

@@ -24,6 +24,15 @@
     Online: 
     <link xlink:href="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200512"/>
   </bibliomixed>
+  
+  <bibliomixed xml:id="ref.redpaper.wsApps">
+    <title>Developing Web Service Applications</title>,
+    <author>
+      <orgname>IBM</orgname>
+    </author>.
+    Red Paper Online:
+    <link xlink:href="http://www.redbooks.ibm.com/redpapers/pdfs/redp4884.pdf"/>
+  </bibliomixed>
 
 </bibliolist>
 </section>
