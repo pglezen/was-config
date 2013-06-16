@@ -63,3 +63,6 @@
 .article > .section p {
 	font-family: Baskerville, Times, serif;
 }
+.programlisting {
+    background-color: #d2d1d3;
+}
