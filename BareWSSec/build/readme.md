@@ -1,4 +1,5 @@
 Soft links to DocBook and FOP
+=============================
 
 These build files rely on references to DocBook stylesheets and,
 in the case of PDF generation, Formatting Objects Program (FOP).
@@ -16,8 +17,8 @@ For each new DocBook Eclipse workspace, the owner must create
 the softlinks folder and populate it with the following soft
 link directory entries:
 
-   docbook
-   fop
+*   docbook
+*   fop
 
 In Linux and Mac systems, this can be done with the ln command.
 
