@@ -53,7 +53,7 @@
     </xslt>
   </target>
 
-  <target name="zip.html" description="Create archive.">
+  <target name="zip.html" depends="html" description="Create archive.">
     <zip destfile="out/${out.zip}">
       <zipfileset dir="${out.dir}" prefix="${master.root}"/>
     </zip>

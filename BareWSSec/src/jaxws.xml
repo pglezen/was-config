@@ -159,7 +159,7 @@ thinclient/src/org/acme/cc/jaxws$
 The problem with this generation of bindings concerns the
 <classname>CCService</classname> class.  It needs to find a copy of the WSDL and
 without any additional arguments to <command>wsimport</command>, it uses the
-fully-qualified path name to the from which the bindings were generated.
+fully-qualified path name to the WSDL file from which the bindings were generated.
 
 <programlisting>URL baseUrl;
 baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
@@ -183,8 +183,26 @@ This results in the following snippet in <filename>CCService.java</filename>.
 baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
 url = new URL(baseUrl, "ccQuery.wsdl");
 </programlisting>
-
 </para>
-
-
+<para>
+But then we have to make sure to copy the WSDL file to the source directory
+where <filename>CCService.java</filename> resides.  An alternative is to count
+the directory levels between <filename>CCService.java</filename> (four in this case)
+and specify this to the <command>wsimport</command>.  Then we can simply place
+copy the WSDL to the <filename class="directory">src</filename> directory.
+<screen>thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws
+            -wsdllocation ../../../../ccQuery.wsdl ccQuery.wsdl</screen>
+This result in the following snippet in <filename>CCService.java</filename>.
+<programlisting>try {
+  URL baseUrl;
+  baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
+  url = new URL(baseUrl, "../../../../ccQuery.wsdl");
+} catch (MalformedURLException e) {
+  logger.warning("Failed to create URL for the wsdl 
+          Location: '../../../../ccQuery.wsdl', retrying as a local file");
+  logger.warning(e.getMessage());
+}</programlisting>
+It makes for a funny-looking warning message if the WSDL is not found.
+The lesser evil is probably a matter of choice.
+</para>
 </section>
