@@ -12,7 +12,7 @@ body { background-image: url('images/draft.png');
       </p><p>
         This document is a member of the Bare Series of WAS
         topics distributed in both stand-alone and in collection form.
-      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N100ED">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
+      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N10105">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
 <span class="bold"><strong>J</strong></span>ava 
 <span class="bold"><strong>A</strong></span>PI for 
 <span class="bold"><strong>X</strong></span>ML - 
@@ -126,7 +126,7 @@ thinclient/src/org/acme/cc/jaxws$
 The problem with this generation of bindings concerns the
 <code class="classname">CCService</code> class.  It needs to find a copy of the WSDL and
 without any additional arguments to <span class="command"><strong>wsimport</strong></span>, it uses the
-fully-qualified path name to the from which the bindings were generated.
+fully-qualified path name to the WSDL file from which the bindings were generated.
 
 </p><pre class="programlisting">URL baseUrl;
 baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
@@ -150,7 +150,26 @@ This results in the following snippet in <code class="filename">CCService.java</
 baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
 url = new URL(baseUrl, "ccQuery.wsdl");
 </pre><p>
-
+</p><p>
+But then we have to make sure to copy the WSDL file to the source directory
+where <code class="filename">CCService.java</code> resides.  An alternative is to count
+the directory levels between <code class="filename">CCService.java</code> (four in this case)
+and specify this to the <span class="command"><strong>wsimport</strong></span>.  Then we can simply place
+copy the WSDL to the <code class="filename">src</code> directory.
+</p><pre class="screen">thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws
+            -wsdllocation ../../../../ccQuery.wsdl ccQuery.wsdl</pre><p>
+This result in the following snippet in <code class="filename">CCService.java</code>.
+</p><pre class="programlisting">try {
+  URL baseUrl;
+  baseUrl = org.acme.cc.jaxws.CCService.class.getResource(".");
+  url = new URL(baseUrl, "../../../../ccQuery.wsdl");
+} catch (MalformedURLException e) {
+  logger.warning("Failed to create URL for the wsdl 
+          Location: '../../../../ccQuery.wsdl', retrying as a local file");
+  logger.warning(e.getMessage());
+}</pre><p>
+It makes for a funny-looking warning message if the WSDL is not found.
+The lesser evil is probably a matter of choice.
 </p></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;wsdl:definitions targetNamespace="urn:issw:bare:wssec:cc:query" 
                         xmlns:tns="urn:issw:bare:wssec:cc:query" 
@@ -235,7 +254,7 @@ url = new URL(baseUrl, "ccQuery.wsdl");
     &lt;/wsdl:port&gt;
   &lt;/wsdl:service&gt;
 &lt;/wsdl:definitions&gt;
-</pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N100ED"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
+</pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N10105"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
     <span class="title">WAS 8.0 Info Center</span>,
     <span class="author"><span class="orgname">IBM</span></span>.
     Online: 
