@@ -12,7 +12,7 @@ body { background-image: url('images/draft.png');
       </p><p>
         This document is a member of the Bare Series of WAS
         topics distributed in both stand-alone and in collection form.
-      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N10105">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
+      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N1018D">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
 <span class="bold"><strong>J</strong></span>ava 
 <span class="bold"><strong>A</strong></span>PI for 
 <span class="bold"><strong>X</strong></span>ML - 
@@ -155,7 +155,7 @@ But then we have to make sure to copy the WSDL file to the source directory
 where <code class="filename">CCService.java</code> resides.  An alternative is to count
 the directory levels between <code class="filename">CCService.java</code> (four in this case)
 and specify this to the <span class="command"><strong>wsimport</strong></span>.  Then we can simply place
-copy the WSDL to the <code class="filename">src</code> directory.
+copy the WSDL to the <code class="filename">bin</code> directory.
 </p><pre class="screen">thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws
             -wsdllocation ../../../../ccQuery.wsdl ccQuery.wsdl</pre><p>
 This result in the following snippet in <code class="filename">CCService.java</code>.
@@ -170,91 +170,187 @@ This result in the following snippet in <code class="filename">CCService.java</c
 }</pre><p>
 It makes for a funny-looking warning message if the WSDL is not found.
 The lesser evil is probably a matter of choice.
-</p></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;wsdl:definitions targetNamespace="urn:issw:bare:wssec:cc:query" 
-                        xmlns:tns="urn:issw:bare:wssec:cc:query" 
-                        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
-                        xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" 
-                        xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;wsdl:types&gt;
-    &lt;schema targetNamespace="urn:issw:bare:wssec:cc:query" 
-            xmlns="http://www.w3.org/2001/XMLSchema"&gt;
-      &lt;element name="QueryRequest"&gt;
-        &lt;complexType&gt;
-          &lt;sequence&gt;
-            &lt;element name="ccNo"     type="xsd:string"/&gt;
-            &lt;element name="lastName" type="xsd:string"/&gt;
-          &lt;/sequence&gt;
-        &lt;/complexType&gt;
-      &lt;/element&gt;
-      &lt;element name="QueryResponse"&gt;
-        &lt;complexType&gt;
-          &lt;sequence&gt;
-            &lt;element name="ccNo"      type="string"/&gt;
-            &lt;element name="acctNo"    type="string"/&gt;
-            &lt;element name="lastName"  type="string"/&gt;
-            &lt;element name="firstName" type="string"/&gt;
-            &lt;element name="balance"   type="int"/&gt;
-          &lt;/sequence&gt;
-        &lt;/complexType&gt;
-      &lt;/element&gt;
-      &lt;element name="QueryFault"&gt;
-        &lt;complexType&gt;
-          &lt;sequence&gt;
-            &lt;element name="ccNo"  type="string"/&gt;
-            &lt;element name="txnId" type="int"/&gt;
-          &lt;/sequence&gt;
-        &lt;/complexType&gt;
-      &lt;/element&gt;
-    &lt;/schema&gt;
-  &lt;/wsdl:types&gt;
+</p><p>
+The final step is a main method to drive everything.  An example is shown in
+<a class="xref" href="#ex.thin.main" title="Example&nbsp;1.&nbsp;Main.java">Example&nbsp;1</a>.  If <code class="filename">Main.java</code> is in the
+current directory, it may be compiled as shown below.
+</p><pre class="screen">pglezen:~/thinclient$ ls
+Main.java bin/    ccQuery.wsdl  src/
+pglezen:~/thinclient$ javac -d bin -classpath bin Main.java
+pglezen:~/thinclient$ </pre><p>
+The <code class="option">-d</code> option tells <span class="command"><strong>javac</strong></span> the root directory
+in which to place the class files.  By putting it relative to
+<code class="filename">bin</code> directory, it will be placed with
+the bindings.  Since the <code class="classname">Main</code> class references the bindings,
+and the bindings have already been compiled into the
+<code class="filename">bin</code> directory, it is all that's needed
+for the <code class="option">-classpath</code> option.
+</p><div class="example"><a name="ex.thin.main"></a><p class="title"><b>Example&nbsp;1.&nbsp;Main.java</b></p><div class="example-contents"><pre class="programlisting">package org.acme.cc.client;
 
-  &lt;wsdl:message name="QueryRequestMsg"&gt;
-    &lt;wsdl:part element="tns:QueryRequest" name="parameters"/&gt;
-  &lt;/wsdl:message&gt;
+import java.util.Map;
 
-  &lt;wsdl:message name="QueryResponseMsg"&gt;
-    &lt;wsdl:part element="tns:QueryResponse" name="parameters"/&gt;
-  &lt;/wsdl:message&gt;
+import javax.xml.ws.BindingProvider;
 
-  &lt;wsdl:message name="QueryFaultMsg"&gt;
-    &lt;wsdl:part element="tns:QueryFault" name="parameters"/&gt;
-  &lt;/wsdl:message&gt;
+import org.acme.cc.jaxws.CCService;
+import org.acme.cc.jaxws.CCPortType;
+import org.acme.cc.jaxws.QueryRequest;
+import org.acme.cc.jaxws.QueryResponse;
+import org.acme.cc.jaxws.QueryFaultMsg;
 
-  &lt;wsdl:portType name="CCPortType"&gt;
-    &lt;wsdl:operation name="query"&gt;
-       &lt;wsdl:input  message="tns:QueryRequestMsg"  name="queryRequest"/&gt;
-       &lt;wsdl:output message="tns:QueryResponseMsg" name="queryResponse"/&gt;
-       &lt;wsdl:fault  message="tns:QueryFaultMsg"    name="queryFault"/&gt;
-    &lt;/wsdl:operation&gt;
-  &lt;/wsdl:portType&gt;
+public class Main {
 
-  &lt;wsdl:binding name="CCSoapBinding" type="tns:CCPortType"&gt;
-    &lt;wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/&gt;
-    &lt;wsdl:operation name="query"&gt;
-      &lt;wsdlsoap:operation soapAction="ccQuery" style="document"/&gt;
+   public static void main(String[] args) {
+      String endpointUrl = "http://localhost:9080/cc/CCService";
+      if (args.length == 1) {
+         endpointUrl = args[0];
+      }
+      System.out.println("Using endpoint URL " + endpointUrl);
+      CCService service = new CCService();  <a class="co" name="code.thinclient.service" href="#callout.thinclient.service"><span><img border="0" alt="1" src="images/callouts/1.png"></span></a>
+      CCPortType port = service.getCCPort();  <a class="co" name="code.thinclient.port" href="#callout.thinclient.port"><span><img border="0" alt="2" src="images/callouts/2.png"></span></a>
+      BindingProvider bp = (BindingProvider)port;  <a class="co" name="code.thinclient.bp" href="#callout.thinclient.bp"><span><img border="0" alt="3" src="images/callouts/3.png"></span></a>
+      Map&lt;String, Object&gt; reqCtx = bp.getRequestContext();
+      reqCtx.put("javax.xml.ws.service.endpoint.address", endpointUrl);
+      
+      QueryRequest request = new QueryRequest();
+      request.setCcNo("2982-3929-5122-4829");
+      request.setLastName("Brown");
+      
+      QueryResponse response = null;
 
-      &lt;wsdl:input name="queryRequest"&gt;
-        &lt;wsdlsoap:body use="literal"/&gt;
-      &lt;/wsdl:input&gt;
-
-      &lt;wsdl:output name="queryResponse"&gt;
-        &lt;wsdlsoap:body use="literal"/&gt;
-      &lt;/wsdl:output&gt;
-
-      &lt;wsdl:fault name="queryFault"&gt;
-        &lt;wsdlsoap:fault name="queryFault" use="literal"/&gt;
-      &lt;/wsdl:fault&gt;
-    &lt;/wsdl:operation&gt;
-  &lt;/wsdl:binding&gt;
-
-  &lt;wsdl:service name="CCService"&gt;
-    &lt;wsdl:port binding="tns:CCSoapBinding" name="CCService"&gt;
-      &lt;wsdlsoap:address location="http://localhost/services/statement"/&gt;
-    &lt;/wsdl:port&gt;
-  &lt;/wsdl:service&gt;
-&lt;/wsdl:definitions&gt;
-</pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N10105"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
+      try {
+         response = port.query(request);  <a name="code.thinclient.invoke"></a><span><img border="0" alt="4" src="images/callouts/4.png"></span>
+      System.out.println("Remote method returned.");
+      } catch (QueryFaultMsg fault) {
+         System.out.println("Caught service exception.");
+         System.out.println("\tmsg = " + fault);
+      }
+      if (response != null) {
+         System.out.println("Got response.");
+         System.out.println("Account Num = " + response.getAcctNo());
+         System.out.println(" First name = " + response.getFirstName());
+         System.out.println("    Balance = " + response.getBalance());
+      }
+   }
+}
+</pre></div></div><p><br class="example-break">
+</p><div class="calloutlist"><table border="0" summary="Callout list"><tr><td align="left" valign="top" width="5%"><p><a name="callout.thinclient.service"></a><a href="#code.thinclient.service"><span><img border="0" alt="1" src="images/callouts/1.png"></span></a> </p></td><td align="left" valign="top"><p>
+    The <code class="classname">CCService</code> class corresponds to the 
+    <code class="classname">&lt;wsdl:service&gt;</code> definition that starts on
+    line 79 of <a class="xref" href="#sec.listings.ccQuery.wsdl" title="2.1.&nbsp;ccQuery.wsdl">Section&nbsp;2.1</a>.  This class
+    extends <code class="classname">javax.xml.ws.Service</code> as required by
+    the JAX-WS specification.
+    </p></td></tr><tr><td align="left" valign="top" width="5%"><p><a name="callout.thinclient.port"></a><a href="#code.thinclient.port"><span><img border="0" alt="2" src="images/callouts/2.png"></span></a> </p></td><td align="left" valign="top"><p>
+    The <code class="classname">CCPortType</code> interface corresponds to the
+    <code class="classname">&lt;wsdl:portType&gt;</code> definition that starts on
+    line 52 of <a class="xref" href="#sec.listings.ccQuery.wsdl" title="2.1.&nbsp;ccQuery.wsdl">Section&nbsp;2.1</a>.  The
+    implementation is retrieved using the <code class="classname">getCCPort()</code>
+    method on the service class.  Such a method exists on the service
+    class for each <code class="classname">&lt;wsdl:port&gt;</code> defined as in
+    line 80 of <a class="xref" href="#sec.listings.ccQuery.wsdl" title="2.1.&nbsp;ccQuery.wsdl">Section&nbsp;2.1</a>.  Often there
+    will be only one such definition.  Examples of when there might be
+    more are when there are multiple port-types or multiple SOAP bindings
+    (1.1 and 1.2) for a single port-type.
+    </p></td></tr><tr><td align="left" valign="top" width="5%"><p><a name="callout.thinclient.bp"></a><a href="#code.thinclient.bp"><span><img border="0" alt="3" src="images/callouts/3.png"></span></a> </p></td><td align="left" valign="top"><p>
+    The cast from a <code class="classname">CCPortType</code> to a
+    <code class="classname">BindingProvider</code> may seem dangerous since
+    <code class="classname">CCPortType</code> does not extend
+    <code class="classname">BindingProvider</code>.  But the JAX-WS specification
+    requires that the implementation of <code class="classname">CCPortType</code>
+    returned by the <code class="classname">getCCPort()</code> method also
+    implement the <code class="classname">BindingProvider</code> interface.
+    </p></td></tr><tr><td align="left" valign="top" width="5%"><p><a name="callout.thinclien.invoke"></a><a href="#code.thinclient.invoke"><span><img border="0" alt="4" src="images/callouts/4.png"></span></a> </p></td><td align="left" valign="top"><p>
+    This line is the actual remote invocation.
+    </p></td></tr></table></div><p>
+</p><p>
+The <code class="classname">javax.xml.ws.BindingProvider</code> interface is key to the
+ability to dynamically set the remot endpoint.  This and other capabitlities are
+described in Section 4.2.1 on the JAX-WS 2.1 specification 
+<a class="xref" href="#ref.JAX-WS-1.2" title="JAX-WS 1.2 Specification">[3]</a>.
+</p></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&nbsp;&nbsp;1 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&nbsp;&nbsp;&nbsp; &lt;wsdl:definitions targetNamespace="urn:issw:bare:wssec:cc:query" 
+&nbsp;&nbsp;&nbsp;                         xmlns:tns="urn:issw:bare:wssec:cc:query" 
+&nbsp;&nbsp;&nbsp;                         xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+&nbsp;&nbsp;5                         xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" 
+&nbsp;&nbsp;&nbsp;                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+&nbsp;&nbsp;&nbsp;   &lt;wsdl:types&gt;
+&nbsp;&nbsp;&nbsp;     &lt;schema targetNamespace="urn:issw:bare:wssec:cc:query" 
+&nbsp;&nbsp;&nbsp;             xmlns="http://www.w3.org/2001/XMLSchema"&gt;
+&nbsp;10       &lt;element name="QueryRequest"&gt;
+&nbsp;&nbsp;&nbsp;         &lt;complexType&gt;
+&nbsp;&nbsp;&nbsp;           &lt;sequence&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="ccNo"     type="xsd:string"/&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="lastName" type="xsd:string"/&gt;
+&nbsp;15           &lt;/sequence&gt;
+&nbsp;&nbsp;&nbsp;         &lt;/complexType&gt;
+&nbsp;&nbsp;&nbsp;       &lt;/element&gt;
+&nbsp;&nbsp;&nbsp;       &lt;element name="QueryResponse"&gt;
+&nbsp;&nbsp;&nbsp;         &lt;complexType&gt;
+&nbsp;20           &lt;sequence&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="ccNo"      type="string"/&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="acctNo"    type="string"/&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="lastName"  type="string"/&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="firstName" type="string"/&gt;
+&nbsp;25             &lt;element name="balance"   type="int"/&gt;
+&nbsp;&nbsp;&nbsp;           &lt;/sequence&gt;
+&nbsp;&nbsp;&nbsp;         &lt;/complexType&gt;
+&nbsp;&nbsp;&nbsp;       &lt;/element&gt;
+&nbsp;&nbsp;&nbsp;       &lt;element name="QueryFault"&gt;
+&nbsp;30         &lt;complexType&gt;
+&nbsp;&nbsp;&nbsp;           &lt;sequence&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="ccNo"  type="string"/&gt;
+&nbsp;&nbsp;&nbsp;             &lt;element name="txnId" type="int"/&gt;
+&nbsp;&nbsp;&nbsp;           &lt;/sequence&gt;
+&nbsp;35         &lt;/complexType&gt;
+&nbsp;&nbsp;&nbsp;       &lt;/element&gt;
+&nbsp;&nbsp;&nbsp;     &lt;/schema&gt;
+&nbsp;&nbsp;&nbsp;   &lt;/wsdl:types&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;40   &lt;wsdl:message name="QueryRequestMsg"&gt;
+&nbsp;&nbsp;&nbsp;     &lt;wsdl:part element="tns:QueryRequest" name="parameters"/&gt;
+&nbsp;&nbsp;&nbsp;   &lt;/wsdl:message&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;   &lt;wsdl:message name="QueryResponseMsg"&gt;
+&nbsp;45     &lt;wsdl:part element="tns:QueryResponse" name="parameters"/&gt;
+&nbsp;&nbsp;&nbsp;   &lt;/wsdl:message&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;   &lt;wsdl:message name="QueryFaultMsg"&gt;
+&nbsp;&nbsp;&nbsp;     &lt;wsdl:part element="tns:QueryFault" name="parameters"/&gt;
+&nbsp;50   &lt;/wsdl:message&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;   &lt;wsdl:portType name="CCPortType"&gt;
+&nbsp;&nbsp;&nbsp;     &lt;wsdl:operation name="query"&gt;
+&nbsp;&nbsp;&nbsp;        &lt;wsdl:input  message="tns:QueryRequestMsg"  name="queryRequest"/&gt;
+&nbsp;55        &lt;wsdl:output message="tns:QueryResponseMsg" name="queryResponse"/&gt;
+&nbsp;&nbsp;&nbsp;        &lt;wsdl:fault  message="tns:QueryFaultMsg"    name="queryFault"/&gt;
+&nbsp;&nbsp;&nbsp;     &lt;/wsdl:operation&gt;
+&nbsp;&nbsp;&nbsp;   &lt;/wsdl:portType&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;60   &lt;wsdl:binding name="CCSoapBinding" type="tns:CCPortType"&gt;
+&nbsp;&nbsp;&nbsp;     &lt;wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/&gt;
+&nbsp;&nbsp;&nbsp;     &lt;wsdl:operation name="query"&gt;
+&nbsp;&nbsp;&nbsp;       &lt;wsdlsoap:operation soapAction="ccQuery" style="document"/&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;65       &lt;wsdl:input name="queryRequest"&gt;
+&nbsp;&nbsp;&nbsp;         &lt;wsdlsoap:body use="literal"/&gt;
+&nbsp;&nbsp;&nbsp;       &lt;/wsdl:input&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;       &lt;wsdl:output name="queryResponse"&gt;
+&nbsp;70         &lt;wsdlsoap:body use="literal"/&gt;
+&nbsp;&nbsp;&nbsp;       &lt;/wsdl:output&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;       &lt;wsdl:fault name="queryFault"&gt;
+&nbsp;&nbsp;&nbsp;         &lt;wsdlsoap:fault name="queryFault" use="literal"/&gt;
+&nbsp;75       &lt;/wsdl:fault&gt;
+&nbsp;&nbsp;&nbsp;     &lt;/wsdl:operation&gt;
+&nbsp;&nbsp;&nbsp;   &lt;/wsdl:binding&gt;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;   &lt;wsdl:service name="CCService"&gt;
+&nbsp;80     &lt;wsdl:port binding="tns:CCSoapBinding" name="CCPort"&gt;
+&nbsp;&nbsp;&nbsp;       &lt;wsdlsoap:address location="http://localhost/services/statement"/&gt;
+&nbsp;&nbsp;&nbsp;     &lt;/wsdl:port&gt;
+&nbsp;&nbsp;&nbsp;   &lt;/wsdl:service&gt;
+&nbsp;&nbsp;&nbsp; &lt;/wsdl:definitions&gt;
+&nbsp;85 </pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N1018D"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
     <span class="title">WAS 8.0 Info Center</span>,
     <span class="author"><span class="orgname">IBM</span></span>.
     Online: 
@@ -265,7 +361,13 @@ The lesser evil is probably a matter of choice.
     <span class="author"><span class="orgname">OASIS</span></span>.
     Online: 
     <a class="link" href="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200512" target="_top">http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200512</a>
-  </p></div><div class="bibliomixed"><a name="ref.redpaper.wsApps"></a><p class="bibliomixed">[3] 
+  </p></div><div class="bibliomixed"><a name="ref.JAX-WS-1.2"></a><p class="bibliomixed">[3] 
+    <span class="title">JAX-WS 1.2 Specification</span>,
+    <span class="date">May, 2007</span>. 
+    <span class="author"><span class="orgname">Sun Microsystems, Inc</span></span>.
+    Online: 
+    <a class="link" href="http://jcp.org/aboutJava/communityprocess/mrel/jsr224/index2.html" target="_top">http://jcp.org/aboutJava/communityprocess/mrel/jsr224/index2.html</a>
+  </p></div><div class="bibliomixed"><a name="ref.redpaper.wsApps"></a><p class="bibliomixed">[4] 
     <span class="title">Developing Web Service Applications</span>,
     <span class="author"><span class="orgname">IBM</span></span>.
     Red Paper Online:
