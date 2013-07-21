@@ -77,7 +77,7 @@
   </wsdl:binding>
 
   <wsdl:service name="CCService">
-    <wsdl:port binding="tns:CCSoapBinding" name="CCService">
+    <wsdl:port binding="tns:CCSoapBinding" name="CCPort">
       <wsdlsoap:address location="http://localhost/services/statement"/>
     </wsdl:port>
   </wsdl:service>

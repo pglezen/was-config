@@ -189,7 +189,7 @@ But then we have to make sure to copy the WSDL file to the source directory
 where <filename>CCService.java</filename> resides.  An alternative is to count
 the directory levels between <filename>CCService.java</filename> (four in this case)
 and specify this to the <command>wsimport</command>.  Then we can simply place
-copy the WSDL to the <filename class="directory">src</filename> directory.
+copy the WSDL to the <filename class="directory">bin</filename> directory.
 <screen>thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws
             -wsdllocation ../../../../ccQuery.wsdl ccQuery.wsdl</screen>
 This result in the following snippet in <filename>CCService.java</filename>.
@@ -204,5 +204,72 @@ This result in the following snippet in <filename>CCService.java</filename>.
 }</programlisting>
 It makes for a funny-looking warning message if the WSDL is not found.
 The lesser evil is probably a matter of choice.
+</para>
+<para>
+The final step is a main method to drive everything.  An example is shown in
+<xref linkend="ex.thin.main"/>.  If <filename>Main.java</filename> is in the
+current directory, it may be compiled as shown below.
+<screen>pglezen:~/thinclient$ ls
+Main.java bin/    ccQuery.wsdl  src/
+pglezen:~/thinclient$ javac -d bin -classpath bin Main.java
+pglezen:~/thinclient$ </screen>
+The <option>-d</option> option tells <command>javac</command> the root directory
+in which to place the class files.  By putting it relative to
+<filename class="directory">bin</filename> directory, it will be placed with
+the bindings.  Since the <classname>Main</classname> class references the bindings,
+and the bindings have already been compiled into the
+<filename class="directory">bin</filename> directory, it is all that's needed
+for the <option>-classpath</option> option.
+<example xml:id="ex.thin.main">
+<title>Main.java</title>
+<programlisting>&thinmain;</programlisting>
+</example>
+<calloutlist>
+  <callout arearefs="code.thinclient.service" id="callout.thinclient.service">
+    <para>
+    The <classname>CCService</classname> class corresponds to the 
+    <classname>&lt;wsdl:service&gt;</classname> definition that starts on
+    line 79 of <xref linkend="sec.listings.ccQuery.wsdl"/>.  This class
+    extends <classname>javax.xml.ws.Service</classname> as required by
+    the JAX-WS specification.
+    </para>
+  </callout>
+  <callout arearefs="code.thinclient.port" id="callout.thinclient.port">
+    <para>
+    The <classname>CCPortType</classname> interface corresponds to the
+    <classname>&lt;wsdl:portType&gt;</classname> definition that starts on
+    line 52 of <xref linkend="sec.listings.ccQuery.wsdl"/>.  The
+    implementation is retrieved using the <classname>getCCPort()</classname>
+    method on the service class.  Such a method exists on the service
+    class for each <classname>&lt;wsdl:port&gt;</classname> defined as in
+    line 80 of <xref linkend="sec.listings.ccQuery.wsdl"/>.  Often there
+    will be only one such definition.  Examples of when there might be
+    more are when there are multiple port-types or multiple SOAP bindings
+    (1.1 and 1.2) for a single port-type.
+    </para>
+  </callout>
+  <callout arearefs="code.thinclient.bp" id="callout.thinclient.bp">
+    <para>
+    The cast from a <classname>CCPortType</classname> to a
+    <classname>BindingProvider</classname> may seem dangerous since
+    <classname>CCPortType</classname> does not extend
+    <classname>BindingProvider</classname>.  But the JAX-WS specification
+    requires that the implementation of <classname>CCPortType</classname>
+    returned by the <classname>getCCPort()</classname> method also
+    implement the <classname>BindingProvider</classname> interface.
+    </para>
+  </callout>
+  <callout arearefs="code.thinclient.invoke" id="callout.thinclien.invoke">
+    <para>
+    This line is the actual remote invocation.
+    </para>
+  </callout>
+</calloutlist>
+</para>
+<para>
+The <classname>javax.xml.ws.BindingProvider</classname> interface is key to the
+ability to dynamically set the remot endpoint.  This and other capabitlities are
+described in Section 4.2.1 on the JAX-WS 2.1 specification 
+<xref linkend="ref.JAX-WS-1.2"/>.
 </para>
 </section>

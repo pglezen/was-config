@@ -46,6 +46,7 @@
       <param name="use.extensions"             expression="1" />
       <param name="fop1.extensions"            expression="1" />
       <param name="callouts.extension"         expression="1" />
+      <param name="linenumbering.extension"    expression="1" />
       <param name="bibliography.numbered"      expression="1" />
       <param name="footer.column.widths"       expression="2 1 2" />
       <param name="footer.msg"                 expression="Incomplete Draft"/>

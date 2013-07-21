@@ -25,6 +25,16 @@
     <link xlink:href="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200512"/>
   </bibliomixed>
   
+  <bibliomixed xml:id="ref.JAX-WS-1.2" >
+    <title>JAX-WS 1.2 Specification</title>,
+    <date>May, 2007</date>. 
+    <author>
+      <orgname>Sun Microsystems, Inc</orgname>
+    </author>.
+    Online: 
+    <link xlink:href="http://jcp.org/aboutJava/communityprocess/mrel/jsr224/index2.html"/>
+  </bibliomixed>
+  
   <bibliomixed xml:id="ref.redpaper.wsApps">
     <title>Developing Web Service Applications</title>,
     <author>
