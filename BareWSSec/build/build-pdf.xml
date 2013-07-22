@@ -15,6 +15,7 @@
     <echo>PDF Directory  = ${dir.pdf}  </echo>
     <echo>PDF Stylesheet = ${xslt.pdf} </echo>
     <echo>FOP Install    = ${dir.fo}   </echo>
+  	<echo>Commit String  = ${scm.commit}</echo>
   </target>
 
 
@@ -52,7 +53,7 @@
       <param name="footer.msg"                 expression="Incomplete Draft"/>
       <param name="draft.mode"                 expression="yes"/>
       <param name="draft.watermark.image"      expression="images/draft.png"/>
-
+      <param name="git.commit"                 expression="${scm.commit}"/>
     </xslt>
     
     <java classname="org.apache.fop.cli.Main" fork="true">
@@ -64,6 +65,8 @@
         </fileset>
       </classpath>
     </java>
+  	
+  	<echo>Commit string: ${scm.commit}</echo>
 
   </target>
 
