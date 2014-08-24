@@ -11,7 +11,7 @@ body { background-image: url('images/draft.png');
         distributed in both stand-alone and in collection form.  The
         latest renderings and source are available on GitHub at
         <a class="link" href="http://pglezen.github.io/was-config" target="_top">http://pglezen.github.io/was-config</a>.
-      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N1018E">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
+      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt><dt><span class="section"><a href="#sec.jaxws.servers">1.2. JAX-WS Servers</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N102A5">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
 <span class="bold"><strong>J</strong></span>ava 
 <span class="bold"><strong>A</strong></span>PI for 
 <span class="bold"><strong>X</strong></span>ML - 
@@ -153,7 +153,7 @@ url = new URL(baseUrl, "ccQuery.wsdl");
 But then we have to make sure to copy the WSDL file to the source directory
 where <code class="filename">CCService.java</code> resides.  An alternative is to count
 the directory levels between <code class="filename">CCService.java</code> (four in this case)
-and specify this to the <span class="command"><strong>wsimport</strong></span>.  Then we can simply place
+and specify this to the <span class="command"><strong>wsimport</strong></span>.  Then we can simply
 copy the WSDL to the <code class="filename">bin</code> directory.
 </p><pre class="screen">thinclient$ wsimport -d bin -s src -p org.acme.cc.jaxws
             -wsdllocation ../../../../ccQuery.wsdl ccQuery.wsdl</pre><p>
@@ -265,7 +265,123 @@ The <code class="classname">javax.xml.ws.BindingProvider</code> interface is key
 ability to dynamically set the remot endpoint.  This and other capabitlities are
 described in Section 4.2.1 on the JAX-WS 2.1 specification 
 <a class="xref" href="#ref.JAX-WS-1.2" title="JAX-WS 1.2 Specification">[3]</a>.
-</p></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&nbsp;&nbsp;1 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+</p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.servers"></a>1.2.&nbsp;JAX-WS Servers</h3></div></div></div><p>
+JAX-WS XML bindings for the server are no different than they are for the client.
+When using <span class="command"><strong>wsimport</strong></span> from the command line, there is no difference
+in the appearance of the output.  The difference is 
+<span class="emphasis"><em>what you do with the output</em></span>.
+You can start by deleting the port type and service classes
+(the classes by annotations 
+<a class="xref" href="#code.thinclient.service"><span><img border="0" alt="1" src="images/callouts/1.png"></span></a> and 
+<a class="xref" href="#code.thinclient.port"><span><img border="0" alt="2" src="images/callouts/2.png"></span></a> of 
+<a class="xref" href="#ex.thin.main" title="Example&nbsp;1.&nbsp;Main.java">Example&nbsp;1</a>).
+These would only be used by a client and we're implementing the provider.
+But this begs the question: what do we use for the implementation class?
+</p><p>
+The answer, when using <span class="command"><strong>wsimport</strong></span> from the command line, is that
+there is nothing to help you with the implementation class.  You just create one
+from scratch that matches the operations in the WSDL and use Java annotations
+to piece everything together.  The implementation class doesn't even have to
+implement the service interface!  This may seem a bit scary at first.  But it's
+not hard once you know which annotations to use; and we'll get to that in a bit.
+</p><p>
+The good news for RAD (Rational Application Developer) users is that the
+<span class="guimenuitem">Generate Java Bean Skeleton</span> wizard actually does generate
+the skeleton with the annotations.
+
+It is this wizard that we'll discuss in detail for the provider implementation.
+</p><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.jaxws.servers.rad"></a>1.2.1.&nbsp;Using the Java Bindings Wizard</h4></div></div></div><p>
+The <span class="guimenuitem">Generate Java Bean Skeleton</span> wizard is how we 
+create and update the Java bindings and service implementation skeleton.
+Many of these instructions apply just as well to Eclipse JEE edition as
+they do to RAD.
+
+</p><div class="section"><div class="titlepage"><div><div><h5 class="title"><a name="sec.jaxws.servers.rad.runtime"></a>1.2.1.1.&nbsp;JAX-WS Runtime</h5></div></div></div><p>
+The JAX-WS bindings wizard requires that you specifiy which JAX-WS runtime
+library implementation to target.  In our case, we'll target the WAS
+version of this runtime.  But for the WAS runtime to be an available option,
+we need to register the location of the WAS runtime libraries on our developer
+workstation.  The WAS runtime libraries are available from a local WAS
+installation on which you intend to run your local tests.
+</p><p>
+Follow these steps to register your WAS installation with RAD installation.
+</p><div class="procedure"><a name="N101BA"></a><p class="title"><b>Procedure&nbsp;1.&nbsp;Register WAS runtime with RAD</b></p><ol class="procedure" type="1"><li class="step"><p>Open the preferences window to
+  <span class="guimenu">Window</span> &rarr; <span class="guimenuitem">Prferences</span>
+  and navigate to
+  <span class="guimenu">Server</span> &rarr; <span class="guimenuitem">Runtime Environment</span>.
+  This should reveal the currently available server runtime environment as
+  shown in <a class="xref" href="#fig.rad.prefs.servers.1" title="Figure&nbsp;2.&nbsp;Initial Server Runtimes">Figure&nbsp;2</a>.
+  </p><div class="figure"><a name="fig.rad.prefs.servers.1"></a><p class="title"><b>Figure&nbsp;2.&nbsp;Initial Server Runtimes</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref01.png" width="100%" alt="Initial Server Runtimes"></td></tr></table></div></div></div><br class="figure-break"><p>
+  If this is the first runtime you've cataloged, you will only see the
+  Web Preview Server Runtime.
+  </p></li><li class="step">Click the <span class="guibutton">Add</span> in 
+     <a class="xref" href="#fig.rad.prefs.servers.1" title="Figure&nbsp;2.&nbsp;Initial Server Runtimes">Figure&nbsp;2</a>.
+  </li><li class="step"><p>
+    Select <span class="guilabel">WebSphere Application Server v8.5</span> from
+    the list of available server adapters as shown in
+    <a class="xref" href="#fig.rad.prefs.servers.2" title="Figure&nbsp;3.&nbsp;Choose the WAS 8.5 Adapter">Figure&nbsp;3</a>.
+    </p><div class="figure"><a name="fig.rad.prefs.servers.2"></a><p class="title"><b>Figure&nbsp;3.&nbsp;Choose the WAS 8.5 Adapter</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref02.png" width="100%" alt="Choose the WAS 8.5 Adapter"></td></tr></table></div></div></div><br class="figure-break"><p>
+    If this selection is not available in <a class="xref" href="#fig.rad.prefs.servers.2" title="Figure&nbsp;3.&nbsp;Choose the WAS 8.5 Adapter">Figure&nbsp;3</a>,
+    it is because you did not install the WAS 8.5 test server component
+    during your RAD install.  You must
+    </p><ol type="a" class="substeps"><li class="step">download the WAS 8.5 test environment repository</li><li class="step">make it available to your IBM Installation Manager</li><li class="step">run the Installation Manager <span class="guibutton">Modify</span> command</li><li class="step">add the WAS 8.5 test environment in the wizard.</li></ol><p> 
+    </p></li><li class="step"><p>
+    Provide a <span class="guilabel">Name</span> for the runtime environment.  
+    You can shorten the default
+    "WebSphere Application Server v8.5" to just "WAS v8.5".  But be
+    sure to note <a class="xref" href="#tip.server.runtime.name" title="Impact of Runtime Label on Team Development">Impact of Runtime Label on Team Development</a>.
+    </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip: Impact of Runtime Label on Team Development"><tr><td valign="top" align="center" rowspan="2" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left"><a name="tip.server.runtime.name"></a>Impact of Runtime Label on Team Development</th></tr><tr><td valign="top" align="left"><p>
+    The value of the <span class="guilabel">Name</span> field in 
+    <a class="xref" href="#fig.rad.prefs.servers.3" title="Figure&nbsp;4.&nbsp;Provide WAS 8.5 location">Figure&nbsp;4</a> 
+    will be embedded in your project metadata where ever you declare 
+    a dependency on it.  Other developers with whom you share projects
+    may declare this differently.  When you share projects via source control,
+    these dependencies won't resolve due to the name conflict.  It's helpful
+    to make sure everyone on the team agrees to the same environment name.
+    </p></td></tr></table></div><div class="figure"><a name="fig.rad.prefs.servers.3"></a><p class="title"><b>Figure&nbsp;4.&nbsp;Provide WAS 8.5 location</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref03.png" width="100%" alt="Provide WAS 8.5 location"></td></tr></table></div></div></div><br class="figure-break"><p>
+   For the <span class="guilabel">Installation directory</span> field, enter the location
+   of the WAS 8.5 installation on your workstation.  The <span class="guilabel">JRE</span>
+   information will be completed automatically when you enter a valid WAS 8.5
+   installation directory.
+   </p></li><li class="step"><p>
+    Click <span class="guilabel">Finish</span>.  The result should be that the WAS 8.5
+    installation appears in the <span class="guilabel">Server Runtime Environment</span>
+    panel as shown in <a class="xref" href="#fig.rad.prefs.servers.4" title="Figure&nbsp;5.&nbsp;Server runtimes with WAS 8.5">Figure&nbsp;5</a>.
+    </p><div class="figure"><a name="fig.rad.prefs.servers.4"></a><p class="title"><b>Figure&nbsp;5.&nbsp;Server runtimes with WAS 8.5</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref04.png" width="100%" alt="Server runtimes with WAS 8.5"></td></tr></table></div></div></div><br class="figure-break"><p>
+    If you select the <span class="guilabel">WebSphere Application Server</span>
+    entry in the preference navigation panel (just under
+    <span class="guilabel">Runtime Environments</span>), you'll see the WAS 8.5
+    entry is present in the top list of
+    <a class="xref" href="#fig.rad.prefs.servers.5" title="Figure&nbsp;6.&nbsp;WAS 8.5 Profiles">Figure&nbsp;6</a>.  Select the WAS 8.5 entry
+    and the bottom list will display a list of profiles.
+    </p><div class="figure"><a name="fig.rad.prefs.servers.5"></a><p class="title"><b>Figure&nbsp;6.&nbsp;WAS 8.5 Profiles</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref05.png" width="100%" alt="WAS 8.5 Profiles"></td></tr></table></div></div></div><br class="figure-break"><p>
+  From this panel you may choose to create a new WAS 8.5 profile for your
+  development activities.
+  </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td valign="top" align="center" rowspan="2" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td valign="top" align="left"><p>
+    It's good to use separate profiles for applications that will run
+    in separate JVMs in order to model the isolation you expect in the
+    production environment.  On the other hand, applications which are
+    expected to run together should share the same profile.
+    </p></td></tr></table></div></li><li class="step">Click <span class="guibutton">OK</span> to save your changes.</li></ol></div></div><div class="section"><div class="titlepage"><div><div><h5 class="title"><a name="sec.jaxws.servers.rad.prefs"></a>1.2.1.2.&nbsp;JAX-WS Emitter Preferences</h5></div></div></div><p>
+The prospect of running the emitter wizard mulitple times raises a concern
+regarding consistency.  How do you remember to run the wizard with the same
+options every time?  It would be nice if the emitter wizard allowed you to
+save your options in a file for future invocations (like when exporting a
+JAR archive in Eclipse).
+
+But there is no such feature.  The closest we can come is to configure defaults
+for the emitter wizard that are as close as possible to what you want so you
+can lessen the likelihood of making an error.
+</p></div><div class="section"><div class="titlepage"><div><div><h5 class="title"><a name="sec.jaxws.servers.rad.wizard"></a>1.2.1.3.&nbsp;JAX-WS Emitter Wizard</h5></div></div></div><p>
+Before you can do much with the Java emmiter wizard you must define a server
+runtime.  This will usually be a WAS developer edition installation on your
+workstation.  To configure your WAS 
+To start the emitter wizard, right-click on the WSDL source file and select
+  <span class="guimenu">Web Services</span> &rarr; <span class="guimenuitem">Generate Java Bean Skeleton</span>.
+The first panel is shown in <a class="xref" href="#">???</a>.
+The WSDL file name should already be populated if you started the emitter
+wizard by right-clicking the WSDL file.
+</p></div></div></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&nbsp;&nbsp;1 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &nbsp;&nbsp;&nbsp; &lt;wsdl:definitions targetNamespace="urn:issw:bare:wssec:cc:query" 
 &nbsp;&nbsp;&nbsp;                         xmlns:tns="urn:issw:bare:wssec:cc:query" 
 &nbsp;&nbsp;&nbsp;                         xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
@@ -349,7 +465,7 @@ described in Section 4.2.1 on the JAX-WS 2.1 specification
 &nbsp;&nbsp;&nbsp;     &lt;/wsdl:port&gt;
 &nbsp;&nbsp;&nbsp;   &lt;/wsdl:service&gt;
 &nbsp;&nbsp;&nbsp; &lt;/wsdl:definitions&gt;
-&nbsp;85 </pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N1018E"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
+&nbsp;85 </pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N102A5"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
     <span class="title">WAS 8.0 Info Center</span>,
     <span class="author"><span class="orgname">IBM</span></span>.
     Online: 
