@@ -13,6 +13,7 @@
   <target name="init" depends="core.init" description="HTML Init">
     <echo>HTML Stylesheet = ${xslt.html}</echo>
     <echo>HTML Directory  = ${dir.html} </echo>
+  	<echo>Commit String   = ${scm.commit}</echo>
   </target>
 
   <!-- ================================================================
@@ -49,6 +50,7 @@
       <param name="callouts.extension"         expression="1" />
       <param name="linenumbering.extension"    expression="1" />
       <param name="bibliography.numbered"      expression="1" />
+      <param name="admon.graphics"             expression="1" />
       <param name="draft.mode"                 expression="yes"/>
       <param name="draft.watermark.image"      expression="images/draft.png"/>
     </xslt>
