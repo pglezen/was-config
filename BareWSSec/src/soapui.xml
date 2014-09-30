@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+<info>
+  <title>Signing Timestamps with SOAP-UI</title>
+</info>
+-->
+<para>
+If you lock down your service provider too tightly, not even your testers
+can invoke it with SOAP-UI.  This section explains how to configure
+SOAP-UI to invoke a web service that only accepts payloads with timestamps
+signed by certain parties.  Of course, one of those parties needs to be
+the tester.
+</para>
+
+<section xml:id="sec.soapui.keystore.generate">
+  <info>
+    <title>Generating the Keystore</title>
+  </info>
+  
+  <para>
+  These steps describe how to create a tester key store for use in signing
+  requests to the provider.  There is no requirement that this be done on
+  WAS.  One could use the JDK keytool if desired.  The WAS admin console is
+  just easier.  Since there is no requirement to manage this keystore as
+  part of a cell, it is not created within the cell configuration and
+  synchronized across nodes.
+  </para>
+  <para>
+  The public certifiate associated with the tester's key is exported so
+  that it can be included within the provider's trust store.
+  </para>
+  <procedure>
+    <step>
+    In the WAS admin console, navigate to
+  <menuchoice>
+    <guimenu>Security</guimenu>
+    <guimenuitem>SSL Certificate and key management</guimenuitem>
+    <guimenuitem>Key stores and certificates</guimenuitem>
+  </menuchoice>.
+    </step>
+    <step>
+    Click the <guibutton>Add</guibutton> button.
+    
+    <substeps>
+      <step>
+      For <guilabel>Name</guilabel>, enter <literal>Tester</literal>.
+      </step>
+      <step>
+      For <guilabel>Description</guilabel>, enter
+      <literal>Key store used by testers, not by WAS.</literal>
+      </step>
+      <step>
+      For <guilabel>Path</guilabel>, enter a fully qualified path name
+      outside the cell configuration directory.  The filename extension
+      should be <filename class="extension">.jks</filename>.
+      </step>
+      <step>
+      Enter a password for the key store.
+      </step>
+      <step>
+      For <guilabel>Type</guilabel>, select <guimenuitem>JKS</guimenuitem>.
+      </step>
+      <step>
+      Click <guimenuitem>OK</guimenuitem>.
+      </step>
+    </substeps>
+    The result is a new empty key store named <guilabel>Tester</guilabel>.
+    </step>
+    <step>
+    For the <guilabel>Tester</guilabel> key store, click the
+    <guilabel>Personal certificates</guilabel> link to create a new
+    public/private key pair.
+    </step>
+    <step>
+    Click the <guibutton>Create</guibutton> button and select
+    <guimenuitem>self-signed Certificate</guimenuitem> 
+    from the dropdown list.
+    <substeps>
+      <step>
+      For <guilabel>Alias</guilabel>, enter <literal>tester1</literal>.
+      </step>
+      <step>
+      For <guilabel>Common name</guilabel>, enter <literal>Acme Tester 1</literal>.
+      </step>
+      <step>
+      For <guilabel>Validity period</guilabel>, enter a suitable validity period.
+      </step>
+      <step>
+      For <guilabel>Organization</guilabel>, enter <literal>Acme</literal>.
+      </step>
+      <step>
+      Enter any of the other fields you like and click <guibutton>OK</guibutton>.
+      </step>
+    </substeps>
+    <guilabel>Tester1</guilabel> is now in your list of personal certificates.
+    </step>
+    <step>
+    Extract the Tester1 public certificate.
+    <sidebar>
+      <title>Extract vs Export</title>
+      <para>
+      The <guilabel>Personal Certificates</guilabel> list has two buttons that appear similar
+      in meaning: <guibutton>Extract</guibutton> and <guibutton>Export</guibutton>.  The
+      <guibutton>Extract</guibutton> button refers to a certificate associated with the
+      key.  The result is a certificate file for use in importing into a trust store.
+      </para>
+      <para>
+      The <guibutton>Export</guibutton> button refers to a public/private key pair.  Its
+      destination is either a new or existing key store.
+      </para>
+    </sidebar>
+    <substeps>
+      <step>
+      In the personal certificates list, check the box next to <guilabel>tester1</guilabel>
+      alias and click the <guibutton>Extract</guibutton> button.
+      </step>
+      <step>
+      In the <guilabel>Certificate file name</guilabel> field, enter the fully qualified
+      file name of the certificate file with a <filename class="extension">.cer</filename>
+      extension.  This will be the location from which it will be imported into the
+      service provider's trust store.
+      </step>
+      <step>
+      Click <guibutton>OK</guibutton>.
+      </step>
+    </substeps>
+    </step>
+    <step>
+    Import the tester1 certificate into the provider trust store.
+    <substeps>
+      <step>
+      Navigate to the <guilabel>Signer certificates</guilabel> section of the CC Provider
+      trust store.
+      </step>
+      <step>
+      Click the <guibutton>Add</guibutton> button.
+      </step>
+      <step>
+      The alias is not so important.  It's good to enter something related to the
+      certificate to be imported.  The <literal>tester1</literal> alias used for
+      creating the certificate is a good choice.
+      </step>
+      <step>
+      Enter the fully qualified file name of the tester certificate you extracted in
+      the previous step.
+      </step>
+      <step>
+      Click <guibutton>OK</guibutton>.
+      </step>
+      <step>
+      Save the configuration.
+      </step>
+    </substeps>
+    </step>
+  </procedure>
+The provider trust store should look similar to the screen shot in
+<xref linkend="fig.was.cc.provider.truststore.1"/>.
+<figure xml:id="fig.was.cc.provider.truststore.1">
+  <title>CC Provider Trust Store with Tester Certificate</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ccProviderTrustStore1.png" width="50%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ccProviderTrustStore1.png" width="4in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+<para>
+The <guilabel>root</guilabel> entry is the WAS cell root that is created
+automatically for each new key store.  It does not play a role here.
+The <guilabel>ccconsumer</guilabel> certificate belongs to the consumer
+application and <guilabel>tester1</guilabel> is the tester certificate
+that was just imported.  It will allow the service provider to accept
+requests signed by this tester.
+</para>
+<para>
+The next section will explain how to configure the tester's SOAP-UI
+installation to sign requests with the new key.
+</para>
+</section>
+
+<section xml:id="sec.soapui.config">
+  <info>
+    <title>Configure SOAP-UI</title>
+  </info>
+
+<para>
+In SOAP-UI we start with a SOAP project that invokes a service provider. 
+The SOAP-UI has no WS-Security configured.  They keystore and its passwords 
+from the previous step are readily available.
+</para>
+
+<section xml:id="sec.soapui.keystore.config">
+  <info>
+    <title>Add Keystore to SOAP-UI</title>
+  </info>
+
+<procedure>
+  <step>
+  Double-click on your SOAP project to bring up the project configuration panel.
+<figure xml:id="fig.soapui.cc.project.1">
+  <title>Double-click CC SOAP-UI Project</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiProject.png" width="35%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiProject.png" width="3in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+  </step>
+  <step>
+  Select the <guimenuitem>WS-Security Configurations</guimenuitem> tab.
+  </step>
+  <step>
+  Select the <guimenuitem>Keystore</guimenuitem> tab.
+  </step>
+  <step>
+  Select the <guibutton>+</guibutton> button to add a new key store.
+<figure xml:id="fig.soapui.cc.keystore.1">
+  <title>Project Keystore Configuration</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiKeystore.png" width="85%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiKeystore.png" width="6in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+  </step>
+  <step>
+  Select the tester key store (with the <filename class="extension">.jks</filename>
+  extension).
+  </step>
+  <step>
+  Enter the key store password.  (There shouldn't be an alias password since we didn't
+  password-protect the key.)
+  </step>
+</procedure>
+<para>
+This completes the configuration of the key store within SOAP-UI.  The key store panel
+should look like <xref linkend="fig.soapui.cc.keystore.2"/>.
+<figure xml:id="fig.soapui.cc.keystore.2">
+  <title>Project Keystore Configuration</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiKeystore2.png" width="85%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiKeystore2.png" width="6in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</para>
+</section>
+
+<section xml:id="sec.soapui.wssec.config">
+  <info>
+    <title>Add WS-Security to SOAP-UI</title>
+  </info>
+  
+<para>
+This section continues from configuration panel of the previous section.
+</para>
+
+<procedure>  
+  <step>
+  Select the <guimenuitem>Outgoing WS-Security Configurations</guimenuitem> sub-tab
+  to the left of the <guimenuitem>Keystores</guimenuitem> sub-tab from the previous
+  section.
+  </step>
+  <step>
+  Click the <guibutton>+</guibutton> button on the upper-left to add a new outgoing
+  WS-Security configuration.
+  </step>
+  <step>
+  For the name of the configuration, enter <literal>Add+Sign Timestamp</literal>.
+  </step>
+  <step>
+  In the lower panel, click the <guibutton>+</guibutton> button to add a new
+  WSS entry.
+<figure xml:id="fig.soapui.cc.wss.1">
+  <title>Add WS-Sec Timestamp</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiWSS1.png" width="85%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiWSS1.png" width="6in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+  <substeps>
+    <step>
+    For the first entry type, select <guilabel>Timestamp</guilabel>.
+    </step>
+    <step>
+    Set <guilabel>Time to Live</guilabel> to a liberal value like
+    <literal>120</literal> (seconds) to avoid any problems with
+    clock skew between the test machine and the service provider.
+    Uncheck the box for <guilabel>Millisecond precision</guilabel>.
+<figure xml:id="fig.soapui.cc.wss.2">
+  <title>Configure WS-Sec Timestamp</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiWSS2.png" width="85%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiWSS2.png" width="6in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+    </step>
+  </substeps>
+  </step>
+  <step>
+  Click the <guibutton>+</guibutton> again to add another WSS entry element.
+  </step>
+  <step>
+  Select <guilabel>Signature</guilabel> for the entry type.
+  </step>
+  <step>
+  Add the following settings to the signature configuration panel.
+  <substeps>
+    <step>
+    For <guilabel>Keystore</guilabel>, select <guilabel>tester.jks</guilabel>.
+    This entry comes from the SOAP-UI key store configuration in the previous
+    section.
+    </step>
+    <step>
+    For <guilabel>Alias</guilabel>, chose <guilabel>tester1</guilabel>.
+    </step>
+    <step>
+    For <guilabel>Password</guilabel>, enter the key store password.
+    </step>
+    <step>
+    For the next five fields choose the options shown in 
+    <xref linkend="fig.soapui.cc.wss.3"/>.
+    </step>
+    <step>
+    Click the <guibutton>+</guibutton> button in the
+    <guilabel>Parts</guilabel> section.  This creates a new row in the
+    table.
+    <substeps>
+      <step>
+      In the <guilabel>Name</guilabel> column, enter
+      <literal>Timestamp</literal>.
+      </step>
+      <step>
+      In the <guilabel>Namespace</guilabel> column, enter
+      <literal>http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd</literal>.
+      </step>
+      <step>
+      In the <guilabel>Content</guilabel> column, select
+      <guimenuitem>Content</guimenuitem>.
+      </step>
+    </substeps>
+<figure xml:id="fig.soapui.cc.wss.3">
+  <title>Configure WS-Sec Signature</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiWSS3.png" width="85%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiWSS3.png" width="6in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+    </step>
+  </substeps>
+  </step>
+</procedure>
+</section>
+
+<section xml:id="sec.soapui.wssec.invoke">
+  <info>
+    <title>Invoke CC Provider with Signature</title>
+  </info>
+
+<para>
+This is the easy part.  Start with any sample request payload (without the WS-Security header).
+Right-click in the request payload editor and select
+  <menuchoice>
+    <guimenu>Outgoing WSS</guimenu>
+    <guimenuitem>Apply "Add+Sign Timestamp"</guimenuitem>
+  </menuchoice>
+as shown in <xref linkend="fig.soapui.cc.wss.4"/>.
+<figure xml:id="fig.soapui.cc.wss.4">
+  <title>Add WS-Sec Signature</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiWSS4.png" width="85%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiWSS4.png" width="6in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+This will slap the WS-Security header right into the payload.
+</para>
+<caution>
+  <para>
+  Do not alter the WS-Security header after generating the timestamp and signature
+  (such as reformating it).  In most cases this will invalidate the signature.
+  </para>
+</caution>
+<para>
+After generating the timestamp and signature, be sure to invoke the CC
+provider within 120 seconds (before the timestamp expires).  After the
+timestamp expires, simply generate a new WS-Security header using the same
+menu option shown in <xref linkend="fig.soapui.cc.wss.4"/>.  It will replace
+the existing WS-Security header with a new one automatically.  There is no
+need to manually delete the old one.  If you wish to simply remove the old
+WS-Security header without adding a new one, right-click into the request
+editor and select
+  <menuchoice>
+    <guimenu>Outgoing WSS</guimenu>
+    <guimenuitem>Remove all outgoing wss</guimenuitem>
+  </menuchoice>.
+</para>
+</section>
+
+<section xml:id="sec.soapui.wssec.troubleshoot">
+  <info>
+    <title>Troubleshooting</title>
+  </info>
+
+<para>
+Here are some troubleshooting tips for when things go wrong.
+</para>
+
+<section xml:id="sec.soapui.wssec.troubleshoot.logs">
+  <info>
+    <title>Logs</title>
+  </info>
+
+<para>
+Check the logs on both sides.  For WAS, there is always the
+<filename>SystemOut.log</filename> file. For SOAP-UI there
+the <guilabel>SoapUI log</guilabel> and <guilabel>error log</guilabel>
+tabs at the bottom of the window as shown in
+<xref linkend="fig.soapui.cc.wss.5"/>.
+<figure xml:id="fig.soapui.cc.wss.5">
+  <title>SOAP-UI Logs</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/soapuiWSS5.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/soapuiWSS4.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</para>
+</section>
+
+<section xml:id="sec.soapui.wssec.troubleshoot.format">
+  <info>
+    <title>Format Request</title>
+  </info>
+</section>
+<para>
+As mentioned above, formatting the request payload corrupts the
+signature.  But if you've already invoked the request (for better
+or worse) and you wish to view the security header, go ahead and
+reformat using by right-clicking in the request panel and
+selecting <guimenuitem>Format XML</guimenuitem>.  This will allow
+you to see the header elements more clearly for troubleshooting.
+</para>
+</section>
+</section>

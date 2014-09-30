@@ -8,7 +8,7 @@
   <property name="dir.src"     location="src" />
   <property name="dir.images"  location="images" />  
   <property name="dir.docbook" location="softlinks/docbook" />
-  <property name="master.root" value="jaxws"/>
+  <property name="master.root" value="soapui"/>
   <property name="master.file" value="${master.root}-master.xml"/>
 
   <target name="init">
@@ -27,6 +27,7 @@
   <filelist id="docbook.src" dir="${dir.src}">
     <file name="${master.file}" />
   	<file name="jaxws.xml" />
+  	<file name="soapui.xml" />
     <file name="pfg.xml" />
     <file name="references.xml" />
   	<file name="listings/ccQuery.wsdl"/>
