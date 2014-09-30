@@ -1,0 +1,231 @@
+<html><head><META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>Bare SOAP-UI for WS-Security</title><link href="main.css" type="text/css" rel="stylesheet"><meta content="DocBook XSL Stylesheets V1.77.1" name="generator"><meta name="description" content="This document is a member of the Bare Series of WAS topics distributed in both stand-alone and in collection form. The latest renderings and source are available on GitHub at ."><style type="text/css">
+body { background-image: url('images/draft.png');
+       background-repeat: no-repeat;
+       background-position: top left;
+       /* The following properties make the watermark "fixed" on the page. */
+       /* I think that's just a bit too distracting for the reader... */
+       /* background-attachment: fixed; */
+       /* background-position: center center; */
+     }</style></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="titlepage"><div><div><h1 class="title"><a name="N10001"></a>Bare SOAP-UI for WS-Security</h1></div><div><div class="author"><h3 class="author"><span class="firstname">Paul</span> <span class="surname">Glezen</span></h3><div class="affiliation"><span class="jobtitle">IT Specialist<br></span><span class="orgname">IBM<br></span> <span class="orgdiv">Software Services for WebSphere<br></span></div></div></div><div><div class="abstract"><p class="title"><b>Abstract</b></p><p>
+        This document is a member of the Bare Series of WAS topics
+        distributed in both stand-alone and in collection form.  The
+        latest renderings and source are available on GitHub at
+        <a class="link" href="http://pglezen.github.io/was-config" target="_top">http://pglezen.github.io/was-config</a>.
+      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.soapui.keystore.generate">1. Generating the Keystore</a></span></dt><dt><span class="section"><a href="#sec.soapui.config">2. Configure SOAP-UI</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.soapui.keystore.config">2.1. Add Keystore to SOAP-UI</a></span></dt><dt><span class="section"><a href="#sec.soapui.wssec.config">2.2. Add WS-Security to SOAP-UI</a></span></dt><dt><span class="section"><a href="#sec.soapui.wssec.invoke">2.3. Invoke CC Provider with Signature</a></span></dt><dt><span class="section"><a href="#sec.soapui.wssec.troubleshoot">2.4. Troubleshooting</a></span></dt></dl></dd></dl></div><p>
+If you lock down your service provider too tightly, not even your testers
+can invoke it with SOAP-UI.  This section explains how to configure
+SOAP-UI to invoke a web service that only accepts payloads with timestamps
+signed by certain parties.  Of course, one of those parties needs to be
+the tester.
+</p><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.soapui.keystore.generate"></a>1.&nbsp;Generating the Keystore</h2></div></div></div><p>
+  These steps describe how to create a tester key store for use in signing
+  requests to the provider.  There is no requirement that this be done on
+  WAS.  One could use the JDK keytool if desired.  The WAS admin console is
+  just easier.  Since there is no requirement to manage this keystore as
+  part of a cell, it is not created within the cell configuration and
+  synchronized across nodes.
+  </p><p>
+  The public certifiate associated with the tester's key is exported so
+  that it can be included within the provider's trust store.
+  </p><div class="procedure"><ol class="procedure" type="1"><li class="step">
+    In the WAS admin console, navigate to
+  <span class="guimenu">Security</span> &rarr; <span class="guimenuitem">SSL Certificate and key management</span> &rarr; <span class="guimenuitem">Key stores and certificates</span>.
+    </li><li class="step">
+    Click the <span class="guibutton">Add</span> button.
+    
+    <ol type="a" class="substeps"><li class="step">
+      For <span class="guilabel">Name</span>, enter <code class="literal">Tester</code>.
+      </li><li class="step">
+      For <span class="guilabel">Description</span>, enter
+      <code class="literal">Key store used by testers, not by WAS.</code></li><li class="step">
+      For <span class="guilabel">Path</span>, enter a fully qualified path name
+      outside the cell configuration directory.  The filename extension
+      should be <code class="filename">.jks</code>.
+      </li><li class="step">
+      Enter a password for the key store.
+      </li><li class="step">
+      For <span class="guilabel">Type</span>, select <span class="guimenuitem">JKS</span>.
+      </li><li class="step">
+      Click <span class="guimenuitem">OK</span>.
+      </li></ol>
+    The result is a new empty key store named <span class="guilabel">Tester</span>.
+    </li><li class="step">
+    For the <span class="guilabel">Tester</span> key store, click the
+    <span class="guilabel">Personal certificates</span> link to create a new
+    public/private key pair.
+    </li><li class="step">
+    Click the <span class="guibutton">Create</span> button and select
+    <span class="guimenuitem">self-signed Certificate</span> 
+    from the dropdown list.
+    <ol type="a" class="substeps"><li class="step">
+      For <span class="guilabel">Alias</span>, enter <code class="literal">tester1</code>.
+      </li><li class="step">
+      For <span class="guilabel">Common name</span>, enter <code class="literal">Acme Tester 1</code>.
+      </li><li class="step">
+      For <span class="guilabel">Validity period</span>, enter a suitable validity period.
+      </li><li class="step">
+      For <span class="guilabel">Organization</span>, enter <code class="literal">Acme</code>.
+      </li><li class="step">
+      Enter any of the other fields you like and click <span class="guibutton">OK</span>.
+      </li></ol><span class="guilabel">Tester1</span> is now in your list of personal certificates.
+    </li><li class="step">
+    Extract the Tester1 public certificate.
+    <div class="sidebar"><div class="titlepage"><div><div><p class="title"><b>Extract vs Export</b></p></div></div></div><p>
+      The <span class="guilabel">Personal Certificates</span> list has two buttons that appear similar
+      in meaning: <span class="guibutton">Extract</span> and <span class="guibutton">Export</span>.  The
+      <span class="guibutton">Extract</span> button refers to a certificate associated with the
+      key.  The result is a certificate file for use in importing into a trust store.
+      </p><p>
+      The <span class="guibutton">Export</span> button refers to a public/private key pair.  Its
+      destination is either a new or existing key store.
+      </p></div><ol type="a" class="substeps"><li class="step">
+      In the personal certificates list, check the box next to <span class="guilabel">tester1</span>
+      alias and click the <span class="guibutton">Extract</span> button.
+      </li><li class="step">
+      In the <span class="guilabel">Certificate file name</span> field, enter the fully qualified
+      file name of the certificate file with a <code class="filename">.cer</code>
+      extension.  This will be the location from which it will be imported into the
+      service provider's trust store.
+      </li><li class="step">
+      Click <span class="guibutton">OK</span>.
+      </li></ol></li><li class="step">
+    Import the tester1 certificate into the provider trust store.
+    <ol type="a" class="substeps"><li class="step">
+      Navigate to the <span class="guilabel">Signer certificates</span> section of the CC Provider
+      trust store.
+      </li><li class="step">
+      Click the <span class="guibutton">Add</span> button.
+      </li><li class="step">
+      The alias is not so important.  It's good to enter something related to the
+      certificate to be imported.  The <code class="literal">tester1</code> alias used for
+      creating the certificate is a good choice.
+      </li><li class="step">
+      Enter the fully qualified file name of the tester certificate you extracted in
+      the previous step.
+      </li><li class="step">
+      Click <span class="guibutton">OK</span>.
+      </li><li class="step">
+      Save the configuration.
+      </li></ol></li></ol></div>
+The provider trust store should look similar to the screen shot in
+<a class="xref" href="#fig.was.cc.provider.truststore.1" title="Figure&nbsp;1.&nbsp;CC Provider Trust Store with Tester Certificate">Figure&nbsp;1</a>.
+<div class="figure"><a name="fig.was.cc.provider.truststore.1"></a><p class="title"><b>Figure&nbsp;1.&nbsp;CC Provider Trust Store with Tester Certificate</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="50%"><tr><td><img src="images/ccProviderTrustStore1.png" width="100%" alt="CC Provider Trust Store with Tester Certificate"></td></tr></table></div></div></div><br class="figure-break"><p>
+The <span class="guilabel">root</span> entry is the WAS cell root that is created
+automatically for each new key store.  It does not play a role here.
+The <span class="guilabel">ccconsumer</span> certificate belongs to the consumer
+application and <span class="guilabel">tester1</span> is the tester certificate
+that was just imported.  It will allow the service provider to accept
+requests signed by this tester.
+</p><p>
+The next section will explain how to configure the tester's SOAP-UI
+installation to sign requests with the new key.
+</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.soapui.config"></a>2.&nbsp;Configure SOAP-UI</h2></div></div></div><p>
+In SOAP-UI we start with a SOAP project that invokes a service provider. 
+The SOAP-UI has no WS-Security configured.  They keystore and its passwords 
+from the previous step are readily available.
+</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.soapui.keystore.config"></a>2.1.&nbsp;Add Keystore to SOAP-UI</h3></div></div></div><div class="procedure"><ol class="procedure" type="1"><li class="step">
+  Double-click on your SOAP project to bring up the project configuration panel.
+<div class="figure"><a name="fig.soapui.cc.project.1"></a><p class="title"><b>Figure&nbsp;2.&nbsp;Double-click CC SOAP-UI Project</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="35%"><tr><td><img src="images/soapuiProject.png" width="100%" alt="Double-click CC SOAP-UI Project"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step">
+  Select the <span class="guimenuitem">WS-Security Configurations</span> tab.
+  </li><li class="step">
+  Select the <span class="guimenuitem">Keystore</span> tab.
+  </li><li class="step">
+  Select the <span class="guibutton">+</span> button to add a new key store.
+<div class="figure"><a name="fig.soapui.cc.keystore.1"></a><p class="title"><b>Figure&nbsp;3.&nbsp;Project Keystore Configuration</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="85%"><tr><td><img src="images/soapuiKeystore.png" width="100%" alt="Project Keystore Configuration"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step">
+  Select the tester key store (with the <code class="filename">.jks</code>
+  extension).
+  </li><li class="step">
+  Enter the key store password.  (There shouldn't be an alias password since we didn't
+  password-protect the key.)
+  </li></ol></div><p>
+This completes the configuration of the key store within SOAP-UI.  The key store panel
+should look like <a class="xref" href="#fig.soapui.cc.keystore.2" title="Figure&nbsp;4.&nbsp;Project Keystore Configuration">Figure&nbsp;4</a>.
+</p><div class="figure"><a name="fig.soapui.cc.keystore.2"></a><p class="title"><b>Figure&nbsp;4.&nbsp;Project Keystore Configuration</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="85%"><tr><td><img src="images/soapuiKeystore2.png" width="100%" alt="Project Keystore Configuration"></td></tr></table></div></div></div><p><br class="figure-break">
+</p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.soapui.wssec.config"></a>2.2.&nbsp;Add WS-Security to SOAP-UI</h3></div></div></div><p>
+This section continues from configuration panel of the previous section.
+</p><div class="procedure"><ol class="procedure" type="1"><li class="step">
+  Select the <span class="guimenuitem">Outgoing WS-Security Configurations</span> sub-tab
+  to the left of the <span class="guimenuitem">Keystores</span> sub-tab from the previous
+  section.
+  </li><li class="step">
+  Click the <span class="guibutton">+</span> button on the upper-left to add a new outgoing
+  WS-Security configuration.
+  </li><li class="step">
+  For the name of the configuration, enter <code class="literal">Add+Sign Timestamp</code>.
+  </li><li class="step">
+  In the lower panel, click the <span class="guibutton">+</span> button to add a new
+  WSS entry.
+<div class="figure"><a name="fig.soapui.cc.wss.1"></a><p class="title"><b>Figure&nbsp;5.&nbsp;Add WS-Sec Timestamp</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="85%"><tr><td><img src="images/soapuiWSS1.png" width="100%" alt="Add WS-Sec Timestamp"></td></tr></table></div></div></div><br class="figure-break"><ol type="a" class="substeps"><li class="step">
+    For the first entry type, select <span class="guilabel">Timestamp</span>.
+    </li><li class="step">
+    Set <span class="guilabel">Time to Live</span> to a liberal value like
+    <code class="literal">120</code> (seconds) to avoid any problems with
+    clock skew between the test machine and the service provider.
+    Uncheck the box for <span class="guilabel">Millisecond precision</span>.
+<div class="figure"><a name="fig.soapui.cc.wss.2"></a><p class="title"><b>Figure&nbsp;6.&nbsp;Configure WS-Sec Timestamp</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="85%"><tr><td><img src="images/soapuiWSS2.png" width="100%" alt="Configure WS-Sec Timestamp"></td></tr></table></div></div></div><br class="figure-break"></li></ol></li><li class="step">
+  Click the <span class="guibutton">+</span> again to add another WSS entry element.
+  </li><li class="step">
+  Select <span class="guilabel">Signature</span> for the entry type.
+  </li><li class="step">
+  Add the following settings to the signature configuration panel.
+  <ol type="a" class="substeps"><li class="step">
+    For <span class="guilabel">Keystore</span>, select <span class="guilabel">tester.jks</span>.
+    This entry comes from the SOAP-UI key store configuration in the previous
+    section.
+    </li><li class="step">
+    For <span class="guilabel">Alias</span>, chose <span class="guilabel">tester1</span>.
+    </li><li class="step">
+    For <span class="guilabel">Password</span>, enter the key store password.
+    </li><li class="step">
+    For the next five fields choose the options shown in 
+    <a class="xref" href="#fig.soapui.cc.wss.3" title="Figure&nbsp;7.&nbsp;Configure WS-Sec Signature">Figure&nbsp;7</a>.
+    </li><li class="step">
+    Click the <span class="guibutton">+</span> button in the
+    <span class="guilabel">Parts</span> section.  This creates a new row in the
+    table.
+    <ol type="i" class="substeps"><li class="step">
+      In the <span class="guilabel">Name</span> column, enter
+      <code class="literal">Timestamp</code>.
+      </li><li class="step">
+      In the <span class="guilabel">Namespace</span> column, enter
+      <code class="literal">http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd</code>.
+      </li><li class="step">
+      In the <span class="guilabel">Content</span> column, select
+      <span class="guimenuitem">Content</span>.
+      </li></ol><div class="figure"><a name="fig.soapui.cc.wss.3"></a><p class="title"><b>Figure&nbsp;7.&nbsp;Configure WS-Sec Signature</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="85%"><tr><td><img src="images/soapuiWSS3.png" width="100%" alt="Configure WS-Sec Signature"></td></tr></table></div></div></div><br class="figure-break"></li></ol></li></ol></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.soapui.wssec.invoke"></a>2.3.&nbsp;Invoke CC Provider with Signature</h3></div></div></div><p>
+This is the easy part.  Start with any sample request payload (without the WS-Security header).
+Right-click in the request payload editor and select
+  <span class="guimenu">Outgoing WSS</span> &rarr; <span class="guimenuitem">Apply "Add+Sign Timestamp"</span>
+as shown in <a class="xref" href="#fig.soapui.cc.wss.4" title="Figure&nbsp;8.&nbsp;Add WS-Sec Signature">Figure&nbsp;8</a>.
+</p><div class="figure"><a name="fig.soapui.cc.wss.4"></a><p class="title"><b>Figure&nbsp;8.&nbsp;Add WS-Sec Signature</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="85%"><tr><td><img src="images/soapuiWSS4.png" width="100%" alt="Add WS-Sec Signature"></td></tr></table></div></div></div><p><br class="figure-break">
+This will slap the WS-Security header right into the payload.
+</p><div class="caution" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Caution"><tr><td valign="top" align="center" rowspan="2" width="25"><img alt="[Caution]" src="images/caution.png"></td><th align="left">Caution</th></tr><tr><td valign="top" align="left"><p>
+  Do not alter the WS-Security header after generating the timestamp and signature
+  (such as reformating it).  In most cases this will invalidate the signature.
+  </p></td></tr></table></div><p>
+After generating the timestamp and signature, be sure to invoke the CC
+provider within 120 seconds (before the timestamp expires).  After the
+timestamp expires, simply generate a new WS-Security header using the same
+menu option shown in <a class="xref" href="#fig.soapui.cc.wss.4" title="Figure&nbsp;8.&nbsp;Add WS-Sec Signature">Figure&nbsp;8</a>.  It will replace
+the existing WS-Security header with a new one automatically.  There is no
+need to manually delete the old one.  If you wish to simply remove the old
+WS-Security header without adding a new one, right-click into the request
+editor and select
+  <span class="guimenu">Outgoing WSS</span> &rarr; <span class="guimenuitem">Remove all outgoing wss</span>.
+</p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.soapui.wssec.troubleshoot"></a>2.4.&nbsp;Troubleshooting</h3></div></div></div><p>
+Here are some troubleshooting tips for when things go wrong.
+</p><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.soapui.wssec.troubleshoot.logs"></a>2.4.1.&nbsp;Logs</h4></div></div></div><p>
+Check the logs on both sides.  For WAS, there is always the
+<code class="filename">SystemOut.log</code> file. For SOAP-UI there
+the <span class="guilabel">SoapUI log</span> and <span class="guilabel">error log</span>
+tabs at the bottom of the window as shown in
+<a class="xref" href="#fig.soapui.cc.wss.5" title="Figure&nbsp;9.&nbsp;SOAP-UI Logs">Figure&nbsp;9</a>.
+</p><div class="figure"><a name="fig.soapui.cc.wss.5"></a><p class="title"><b>Figure&nbsp;9.&nbsp;SOAP-UI Logs</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/soapuiWSS5.png" width="100%" alt="SOAP-UI Logs"></td></tr></table></div></div></div><p><br class="figure-break">
+</p></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.soapui.wssec.troubleshoot.format"></a>2.4.2.&nbsp;Format Request</h4></div></div></div></div><p>
+As mentioned above, formatting the request payload corrupts the
+signature.  But if you've already invoked the request (for better
+or worse) and you wish to view the security header, go ahead and
+reformat using by right-clicking in the request panel and
+selecting <span class="guimenuitem">Format XML</span>.  This will allow
+you to see the header elements more clearly for troubleshooting.
+</p></div></div></div></body></html>
