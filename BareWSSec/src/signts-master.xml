@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article [
+  <!ENTITY author   SYSTEM "pfg.xml">
+  <!ENTITY concepts SYSTEM "wssec-concepts.xml">
+  <!ENTITY body     SYSTEM "signts.xml">
+  <!ENTITY refs     SYSTEM "references.xml">
+]>
+<article xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+  <info>
+    <title>Bare Timestamp Signatures with WS-Security</title>
+    <date>November, 2014</date>
+    &author;
+    <abstract>
+      <para>
+        This document is a member of the Bare Series of WAS topics
+        distributed in both stand-alone and in collection form.  The
+        latest renderings and source are available on GitHub at
+        <link xlink:href="http://pglezen.github.io/was-config"/>.
+      </para>
+    </abstract>
+  </info>
+  
+  <section xml:id="sec.chap.concepts">
+    <info>
+      <title>Concepts</title>
+    </info>
+    &concepts;
+  </section>
+  
+  <section xml:id="sec.chap.body">
+    <info>
+      <title>Implementation</title>
+    </info>
+    &body;
+  </section>
+  
+</article>

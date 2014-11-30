@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+  <para>
+  The signatures described here are considered protection tokens 
+  for the purpose of configuration within the WAS admin console. In our 
+  app-to-app scenario, the signature is doubling as an authentication 
+  mechanism of sorts, since only the possessor of the private key could have 
+  signed the message. But don't let this secondary usage misguide you when 
+  working through the policy set binding panels. The signature scenario 
+  exclusively deals with protection tokens, not authentication tokens.
+  </para>
+
+<section xml:id="sec.signts.keystores">
+  <info>
+    <title>Key Stores</title>
+  </info>
+
+<section xml:id="sec.signts.keystores.consumer">
+  <info>
+    <title>Service Consumer</title>
+  </info>
+
+  <para>
+  The service consumer requires a key store containing a private/public
+  key pair that identifies the service consumer application. The public 
+  key will be extracted so that it may be provided to the consumer for 
+  the purpose establishing trust.
+  </para>
+  <para>
+  This key store, key alias, and password will be configured in the general 
+  client policy bindings as a reference to a managed key store. The scripting 
+  burden of the WS-Security configuration would be eased if the key store and 
+  key alias names could be consistent among environments.
+  </para>
+</section>
+
+<section xml:id="sec.signts.keystores.provider">
+  <info>
+    <title>Service Provider</title>
+  </info>
+
+  <para>
+  The service provider requires a trust store containing the signer certificates 
+  that the provider is willing to accept.
+  For this WS-Security configuration, this amounts to the CCConsumer public certificate.
+  </para>
+  <para>
+  As with the service consumer case, choosing a consistent name for trust store 
+  simplifies the scripting of the service provider policy set bindings.
+  </para>
+</section>
+</section>
+
+<section xml:id="sec.signts.policyset">
+  <info>
+    <title>The Policy Set</title>
+  </info>
+<para>
+A policy set is a set of WS-Policy documents. 
+As mentioned in <xref linkend="sec.concepts.whatandhow"/>, 
+a policy document addresses what is to be done or enforced. 
+Since both ends of a consumer-provider channel must agree on this, 
+the policy document is usually shared between both parties.
+</para>
+<para>
+In the present case, the policy document will specify the signing 
+of a time stamp. Later sections address policy set bindings that 
+configure role and environment specific configurations, 
+mostly to do with key stores.
+</para>
+<section xml:id="sec.signts.policyset.create">
+  <info>
+    <title>Policy Set Creation</title>
+  </info>
+  
+  <para>
+  The following steps show how to create a policy set that specifies
+  </para>
+  <itemizedlist>
+    <listitem>
+      A timestamp to be added to the WS-Security header
+    </listitem>
+    <listitem>
+      the timestamp to be signed
+    </listitem>
+  </itemizedlist>
+  <para>
+  This policy set is simple enough to create from scratch.
+  </para>
+  <procedure>
+    <step>
+    <para>
+    In the WAS admin console, navigate to
+    <menuchoice>
+      <guimenu>Services</guimenu>
+      <guimenuitem>Policy sets</guimenuitem>
+      <guimenuitem>Application Policy sets</guimenuitem>.
+    </menuchoice>.
+    </para>
+    </step>
+    <step>
+    <para>
+    Click the <guibutton>New</guibutton> button.
+    </para>
+    </step>    
+    <step>
+    <para>
+    For <guilabel>Name</guilabel>, enter <literal>Sign Timestamp</literal>.
+    </para>
+    </step>
+    <step>
+    <para>
+    For <guilabel>Description</guilabel>, enter
+    <literal>Add a timestamp to the SOAP security header and sign it.</literal>
+    </para>
+    </step>
+    <step>
+    <para>
+    In the <guilabel>Policies</guilabel> section,
+    click the <guibutton>New</guibutton> button
+    and select <guimenuitem>WS-Security</guimenuitem>.
+    This will cause a <guilabel>WS-Security</guilabel> link to appear in the list.
+    </para>
+    </step>
+    <step><para>Click the <guilabel>WS-Security</guilabel> link.</para></step>
+    <step>
+    <para>
+    Click the <guilabel>main policy</guilabel> link.
+    </para>
+    <para>
+    This panel holds all settings for the WS-Security policy.  The
+    <guilabel>Message level protection</guilabel> box should already be checked.
+    In the present case, all we wish to do is add a timestamp and sign it.  We
+    will remove the other items.
+    </para>
+<figure xml:id="fig.signts.policy.main">
+  <title>Main Policy Panel</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/signtsPolicy01.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/signtsPolicy01.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+    </step>
+    <step>
+    <para>
+    The checkbox <guilabel>Include timestamp in security header</guilabel>
+    should already be checked.
+    </para>
+    </step>
+    <step>
+    <para>
+    Click the <guilabel>Request message part protection</guilabel> link.
+    </para>
+    </step>
+    <step>
+    <para>
+    Under <guilabel>Encrypted parts</guilabel>,
+    select <guilabel>app_encparts</guilabel> and click the
+    <guibutton>Delete</guibutton>.
+    We remove the encrypted parts because we will not be encrypting the
+    payload at the message level.
+    </para>
+    </step>
+    <step>
+    <para>
+    Under <guilabel>Signed parts</guilabel>,
+    select <guilabel>app_signparts</guilabel>
+    and click <guibutton>Edit</guibutton>.
+    </para>
+<figure xml:id="fig.signts.policy.signparts">
+  <title>Message parts to sign</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/signtsPolicy02.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/signtsPolicy02.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+  </step>
+  <step>
+  <para>
+  By default there are five signed parts specified:
+  three general parts and two timestamp parts at the bottom.
+  Remove the top three parts compresed of the Body and two
+  WS-Addressing QName parts.
+  You should be left with two XPath expression parts for the timestamp:
+  one for SOAP 1.1 and one for SOAP 1.2.
+  </para>
+  </step>
+  <step>
+  <para>
+  Click <guibutton>OK</guibutton> for the signed parts and
+  <guibutton>Done</guibutton> for the request message part protection.
+  </para>
+  </step>
+  <step>
+  <para>
+  Click <guilabel>Asymmetric signature and encryption policies</guilabel>.
+  Verify that <guilabel>X.509</guilabel> is chosen for the
+  Message Integrity Policy
+  section as shown in <xref linkend="fig.signts.policy.sigpolicies"/>.
+  </para>
+<figure xml:id="fig.signts.policy.sigpolicies">
+  <title>Asymmetric signature and encryption policies</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/signtsPolicy03.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/signtsPolicy03.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+  <para>
+  If they are not present, click the <guibutton>Action</guibutton> drop-down
+  menu and select <guimenuitem>Add X.509 Type</guimenuitem>.
+  Choose the version shown in <xref linkend="fig.signts.policy.x509type"/>.
+  </para>
+<figure xml:id="fig.signts.policy.x509type">
+  <title>Add X.509 Type</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/signtsPolicy04.png" width="30%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/signtsPolicy04.png" width="2in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+  </step>
+  </procedure>
+
+<para>
+This completes the specification of the request message protection.
+</para>
+<itemizedlist>
+  <listitem>
+  <para>
+  The default algorithms are fine; but may be adjusted.
+  If you choose this section, only adjust the
+  <guilabel>Algorithm suite</guilabel>.
+  Do not change the <guilabel>Canonicalization algorithm</guilabel>
+  or the <guilabel>XPath version</guilabel> unless you know what
+  you're doing.
+  </para>
+  </listitem>
+  <listitem>
+  <para>
+  There are no request or response tokens for this configuration.
+  </para>
+  </listitem>
+</itemizedlist>
+</section>
+
+<section xml:id="sec.signts.policyset.importexport">
+  <info>
+    <title>Policy Set Export and Import</title>
+  </info>
+  
+  <para>
+  A policy set is usually shared between consumer and provider instances
+  as well as among different environments.
+  It is usually created once and exported; 
+  then imported wherever else it is needed.
+  </para>
+  <para>
+  To export the <classname>Sign Timestamp</classname> policy, navigate to
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>Policy sets</guimenuitem>
+    <guimenuitem>Application policy sets</guimenuitem>
+  </menuchoice>.
+  Check the box next to <guilabel>Sign Timestamp</guilabel> and click the
+  <guibutton>Export</guibutton> button at the top.  This will reveal a
+  <guilabel>Sign Timestamp.zip</guilabel> link.  Click this link to
+  download the policy set export.
+  </para>
+  <tip>
+  <para>
+  Because "Sign Timestamp" contains a space in the name for readability,
+  the admin console will supply a default file name of
+  <filename>Sign Timestamp.zip</filename>.
+  Scripting will be simplified if this space is removed from the file name.
+  This space will still be preserved for the policy name after import into
+  other WAS cells.
+  </para>
+  </tip>
+  <para>
+  Here are the steps to import a policy set.
+  <procedure>
+  <step>
+  <para>
+  In the admin console, navigate to 
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>Policy sets</guimenuitem>
+    <guimenuitem>Application policy sets</guimenuitem>
+  </menuchoice>.
+  </para>
+  </step>
+  <step>
+  <para>
+  Click the <guibutton>Import</guibutton> button and select
+  <guilabel>From Selected location</guilabel>.
+  </para>
+  </step>
+  <step>
+  <para>
+  Click the <guibutton>Browse</guibutton> button and select the
+  policy set archive.
+  </para>
+  </step>
+  <step>
+  <para>
+  Click <guibutton>OK</guibutton>.
+  </para>
+  </step>
+  </procedure>
+  </para>
+  <para>
+  The imported policy set should now appear in the list of
+  application policy sets.
+  </para>
+  
+</section>
+</section>

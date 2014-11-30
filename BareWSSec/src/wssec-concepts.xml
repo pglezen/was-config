@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<para>
+WS-Policy is a very general framework for describing “non-functional” 
+requirements for web services. WS-Policy applies to many aspects
+of web services such as
+addressing, reliability, notifications, and most commonly, security.
+The power of this concept lies in the potential to apply these
+policies to applications without requiring changes to the application
+code. WS-Policy addresses a wide variety of requirements in a vendor 
+neutral way. This has obvious benefits; but also leads to its commonly
+cited drawback: its complexity and abstraction levels often discourage 
+its adoption.
+</para>
+<para>
+Since this document only addresses WS-Security, it often uses the terms 
+WS-Policy and WS-Security interchangeably.
+</para>
+
+<section xml:id="sec.concepts.whatandhow">
+  <info>
+    <title>What versus How</title>
+  </info>
+  
+  <para>
+  WS-Security documents, in order to be general enough to apply in a 
+  platform-neutral way, are restricted to 
+  <emphasis>what</emphasis> is to be done. Examples of “what” include 
+  “encrypt this field” or “add a time stamp and sign it.” But when it
+  comes to implementing these mandates, there is still the question of 
+  <emphasis>how</emphasis>.
+  The most common examples of "how" are “how is an encryption key to be 
+  procured” or “how is a certificate verified to be trustworthy” or "how 
+  is a certificate to be specified in a SOAP payload". In 
+  WebSphere Application Server (<acronym>WAS</acronym>), 
+  this separation of concerns is implemented with 
+  policy sets and policy set bindings. 
+  </para>
+</section>
+
+<section xml:id="sec.concepts.protandauth">
+
+  <info>
+    <title>Protection versus Authentication</title>
+  </info>
+  
+  <para>
+  The WS-Security configuration panels often distinguish between 
+  protection tokens and authentication tokens. 
+  In this context, protection refers to protecting the message from 
+  eavesdropping and/or corruption (whether accidental or malicious). 
+  Eavesdropping is addressed by encryption.
+  Message corruption is addressed by signatures. 
+  In this document these tokens are asymmetric X.509 binary security tokens.
+  </para>
+  <para>
+  Authentication tokens contain identity information. This identity 
+  information may be encrypted and/or signed. It conveys to the provider 
+  the identity on behalf of whom the request is executing.
+  </para>
+
+</section>
+
+<section xml:id="sec.concepts.callbacks">
+  <info>
+    <title>Callback Handlers</title>
+  </info>
+  
+  <!-- TODO: The following paragraph could use a figure to help visualize
+       how callbacks and their handlers interact.
+    -->
+  <para>
+  The WAS security runtime uses a framework to apply the same processing 
+  pattern to similar scenarios. But while the high-level processing is the
+  same, details about the input can vary widely. A common example is the 
+  authentication process. One can authenticate via a user ID and password, 
+  a SAML assertion, an LTPA token, an SSL certificate, or others. Each of 
+  these types of authentication have a callback handler class associated 
+  with it. When specifying which authentication to use, the callback handler 
+  class is specified for processing and the callback class is populated with 
+  the input. Each callback handler expects input in the form of its associated 
+  callback.
+  </para>
+  <para>
+  This concept appears often in WS-Security configuration panels. 
+  When confronted with a callback handler configuration, 
+  it's just a way to pass data into the framework process. 
+  For WS-Security panels, this is used to convey the key and trust store 
+  information.
+  </para>
+</section>
+
+<section xml:id="sec.concepts.mustunderstand">
+  <info>
+    <title>Must Understand</title>
+  </info>
+  
+  <para>
+  WS-Security headers support a 
+  <tag class="attribute">mustUnderstand</tag>
+  attribute. If this attribute is set to "<tag class="attvalue">1</tag>", 
+  it means all intermediaries must be able to process the security information.
+  If a signature is included, the intermediaries must be able to verify it. 
+  If intermediaries are not required to process the security token, 
+  then this attribute should have a value of "<tag class="attvalue">0</tag>" 
+  or the attribute must be absent 
+  (zero is assumed when absent).
+  </para>
+  <para>
+  By default, a WS-Security binding configuration will add 
+  <code>mustUnderstand="1"</code>. 
+  To override this default requires a custom property set on the binding. 
+  This location for this custom property in the WAS admin console is 
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>General client policy set bindings</guimenuitem>
+    <guimenuitem>(binding)</guimenuitem>
+    <guimenuitem>WS-Security</guimenuitem>
+    <guimenuitem>Custom properties</guimenuitem>
+  </menuchoice>.
+  </para>
+  <para>
+  The <guilabel>mustUnderstand</guilabel> custom property is defined under 
+  <guilabel>Outbound Custom Properties</guilabel> 
+  and is named 
+  <programlisting>
+  com.ibm.wsspi.wssecurity.config.request.setMustUnderstand</programlisting>
+  </para>
+  <para>
+  Another useful custom property for the client bindings is defined under 
+  <guilabel>Inbound Custom Properties</guilabel>. 
+  It determines whether the "consumer" requires a timestamp on the response. 
+  Its name is
+  <programlisting>
+   com.ibm.wsspi.wssecurity.consumer.timestampRequired</programlisting>
+  </para>
+  <para>
+  Since this property is defined on the inbound section for a client, 
+  it is referring to a response (from the provider). 
+  By default this property value is 1; meaning the provider must sign sign a return 
+  time stamp or the response will be rejected. 
+  This restriction may be relaxed by setting this value to 0.
+  </para>
+</section>
+
+<section xml:id="sec.concepts.apps">
+  <info>
+    <title>Application Code Requirements</title>
+  </info>
+
+  <para>
+  WS-Security policies can only be applied to Java bindings implemented with JAX-WS.
+  They cannot be applied to JAX-RPC bindings.
+  Services implemented with JAX-WS bindings will appear under 
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>Service providers</guimenuitem>
+  </menuchoice>. 
+  Service provides are always considered to be managed.
+  </para>
+  <para>
+  JAX-WS client bindings can be either managed or non-managed, 
+  depending on how they are packaged and initialized. 
+  <!-- TODO: Cite reference to JAX-WS Application Packaging in the IBM Info Center.
+  http://www-01.ibm.com/support/knowledgecenter/SSAW57_8.5.5/com.ibm.websphere.nd.doc/ae/cwbs_jaxwsapp.html
+  -->
+  A JAX-WS client is only managed if it is retrieved via a local JNDI reference. 
+  Obtaining a JAX- WS service reference through either direct instantiation or
+  through global JNDI look-up are not managed.
+  Non-managed JAX-WS clients cannot have WS-Security policy applied to them
+  because they bypass the required WAS runtime hooks.
+  </para>
+  <para>
+  Managed JAX-WS client have to be declared through either the
+  <code>@WebServiceRef</code> annotation or the 
+  <tag class="element">service-ref</tag> 
+  entry in a deployment descriptor.
+  The <code>@WebServiceRef</code> annotation is the more convenient option. 
+  But scanning for this annotation is restricted to EJB classes, Servlet classes, 
+  JAX-WS handler classes, and some service endpoint implementations. 
+  Moreover, it is not always practical to add <code>@WebServiceRef</code>
+  annotations to every class in which a service client is required.
+  </para>
+  <para>
+  Web application projects can have a 
+  <tag class="element">service-ref</tag>
+  element to their <filename>web.xml</filename> deployment descriptor.
+  The following is how such an entry would look for the CC example consumer 
+  web application.
+  </para>
+  <programlisting><![CDATA[
+ <service-ref>
+   <service-ref-name>service/CCService</service-ref-name>
+   <service-interface>org.acme.cc.jaxws.CCService</service-interface>
+ </service-ref>]]></programlisting>
+  <para>
+  This works when the JAX-WS client binding classes are packaged within 
+  the WAR project, either directly compiled to the classes directory or
+  included as a JAR file in 
+  <filename class="directory">WEB-INF/lib</filename>. 
+  But if the JAX-WS client bindings are packaged as a utility JAR included 
+  within the EAR file, an extra element is needed in the deployment descriptor.
+  </para>
+  <programlisting><![CDATA[
+ <service-ref>
+   <service-ref-name>service/CCService</service-ref-name>
+   <service-interface>org.acme.cc.jaxws.CCService</service-interface>
+   <service-qname xmlns:pfx="urn:issw:bare:wssec:cc:query">pfx:CCService</service-qname>
+ </service-ref>]]></programlisting>
+  <para>
+  The <tag class="element">service-qname</tag> element allows the local
+  reference look-up to successfully determine the QName for the client
+  binding service class. The <code>xmlns:pfx</code> attribute is a 
+  namespace declaration. The value should be the namespace declared for 
+  your service element of the relevant WSDL document.
+  </para>
+</section>  
