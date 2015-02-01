@@ -123,16 +123,14 @@ WS-Policy and WS-Security interchangeably.
   The <guilabel>mustUnderstand</guilabel> custom property is defined under 
   <guilabel>Outbound Custom Properties</guilabel> 
   and is named 
-  <programlisting>
-  com.ibm.wsspi.wssecurity.config.request.setMustUnderstand</programlisting>
+  <programlisting>com.ibm.wsspi.wssecurity.config.request.setMustUnderstand</programlisting>
   </para>
   <para>
   Another useful custom property for the client bindings is defined under 
   <guilabel>Inbound Custom Properties</guilabel>. 
   It determines whether the "consumer" requires a timestamp on the response. 
   Its name is
-  <programlisting>
-   com.ibm.wsspi.wssecurity.consumer.timestampRequired</programlisting>
+  <programlisting>com.ibm.wsspi.wssecurity.consumer.timestampRequired</programlisting>
   </para>
   <para>
   Since this property is defined on the inbound section for a client, 

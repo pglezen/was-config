@@ -330,3 +330,116 @@ This completes the specification of the request message protection.
   
 </section>
 </section>
+
+<section xml:id="sec.signts.clientbindings">
+  <info>
+    <title>Client Policy Set Bindings</title>
+  </info>
+<para>
+The client policy set bindings for the CCConsumerApp application
+specifies how the consumer application will sign the SOAP payload
+elements required by the policy set.  This amounts to specifying
+</para>
+<itemizedlist>
+<listitem>
+a key store along with the alias of the key used to sign the request,
+</listitem>
+<listitem>
+how the corresponding certificate is to be identified.
+</listitem>
+</itemizedlist>
+<para>
+These concepts are illustrated below in 
+<xref linkend="fig.signts.clientbindings.concepts"/>
+as objects in a WAS configuration.
+</para>
+<figure xml:id="fig.signts.clientbindings.concepts">
+  <title>Client binding concepts</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/clientBindingsConcepts.jpg" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/clientBindingsConcepts.jpg" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+<para>
+The <firstterm>protection token</firstterm> object references a key store and
+contains properties for specifying the alias of the relevant key in the key
+store along with a key store password.
+It represents a private key in the configuration.
+</para>
+<para>
+The <firstterm>key info</firstterm> object determines how information about
+the key will be added to the payload.  Examples include referring to the
+certificate's serial number, the certificate's SHA1 thumbprint, or just
+including the entire certificate as base64-encoded text.
+In addition to specifying how the key will be referenced in the payload, 
+it also includes a reference to the key itself through through a reference 
+to the associated protection token object.
+</para>
+<para>
+The <firstterm>request message protection</firstterm> object binds the 
+protection token and key info into a single configuration.
+Only when key info objects are referenced by a request message protection
+object are they "activated" by the binding.
+</para>
+<para>
+The objects in <xref linkend="fig.signts.clientbindings.concepts"/> are
+configured in the WAS admin console by navigating to
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>Policy sets</guimenuitem>
+    <guimenuitem>General client policy set bindings</guimenuitem>
+  </menuchoice>.
+  After selecting from the particular binding, click the
+  <guimenu>WS-Security</guimenu> link.
+  unfortunately not all objects are available from the same panel.
+  <xref linkend="fig.signts.clientbindings.overlay"/> gathers together
+  the three screens needed for this configuration with the conceptual
+  objects from <xref linkend="fig.signts.clientbindings.concepts"/>
+  superimosed on them for reference.
+</para>  
+<figure xml:id="fig.signts.clientbindings.overlay">
+  <title>Client binding concepts overlayed on screen shot</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/clientBindingsOverlay.jpg" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/clientBindingsOverlay.jpg" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+<para>
+  The WS-Security panel is shown at the top of
+  <xref linkend="fig.signts.clientbindings.overlay"/>.
+  The <guilabel>Authentication and protection</guilabel> link navigates to the
+  panel on the left.
+  The <guilabel>Keys and certificates</guilabel> link navigates to the panel
+  on the right.
+  The direction of the arrows in 
+  <xref linkend="fig.signts.clientbindings.overlay"/>
+  convey the direction of references.
+  So the objects must be configured in the reverse order of the arrows so that
+  the references may be resolved.
+</para>
+<procedure>
+  <step>Configure a managed key store as described in 
+       <xref linkend="sec.signts.keystores.consumer"/>.
+  </step>
+  <step>Create a protection token object referencing the key store.</step>
+  <step>Create a key info object referencing the protection token.</step>
+  <step>Create a request message protection object referencing the key
+    info object.
+  </step>
+  <step>Add custom properties.</step>
+</procedure>
+<para>
+  The panel for the last item is not shown in 
+  <xref linkend="fig.signts.clientbindings.overlay"/>.
+  But the <guilabel>Custom properties</guilabel> link to its panel is
+  shown near the top.
+</para>
+</section>
