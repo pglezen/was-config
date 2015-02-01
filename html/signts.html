@@ -1,0 +1,365 @@
+<html><head><META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>Bare Timestamp Signatures with WS-Security</title><link href="main.css" type="text/css" rel="stylesheet"><meta content="DocBook XSL Stylesheets V1.77.1" name="generator"><meta name="description" content="This document is a member of the Bare Series of WAS topics distributed in both stand-alone and in collection form. The latest renderings and source are available on GitHub at ."><style type="text/css">
+body { background-image: url('images/draft.png');
+       background-repeat: no-repeat;
+       background-position: top left;
+       /* The following properties make the watermark "fixed" on the page. */
+       /* I think that's just a bit too distracting for the reader... */
+       /* background-attachment: fixed; */
+       /* background-position: center center; */
+     }</style></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="titlepage"><div><div><h1 class="title"><a name="N10001"></a>Bare Timestamp Signatures with WS-Security</h1></div><div><div class="author"><h3 class="author"><span class="firstname">Paul</span> <span class="surname">Glezen</span></h3><div class="affiliation"><span class="jobtitle">IT Specialist<br></span><span class="orgname">IBM<br></span> <span class="orgdiv">Software Services for WebSphere<br></span></div></div></div><div><div class="abstract"><p class="title"><b>Abstract</b></p><p>
+        This document is a member of the Bare Series of WAS topics
+        distributed in both stand-alone and in collection form.  The
+        latest renderings and source are available on GitHub at
+        <a class="link" href="http://pglezen.github.io/was-config" target="_top">http://pglezen.github.io/was-config</a>.
+      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap.concepts">1. Concepts</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.concepts.whatandhow">1.1. What versus How</a></span></dt><dt><span class="section"><a href="#sec.concepts.protandauth">1.2. Protection versus Authentication</a></span></dt><dt><span class="section"><a href="#sec.concepts.callbacks">1.3. Callback Handlers</a></span></dt><dt><span class="section"><a href="#sec.concepts.mustunderstand">1.4. Must Understand</a></span></dt><dt><span class="section"><a href="#sec.concepts.apps">1.5. Application Code Requirements</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.chap.body">2. Implementation</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.signts.keystores">2.1. Key Stores</a></span></dt><dt><span class="section"><a href="#sec.signts.policyset">2.2. The Policy Set</a></span></dt><dt><span class="section"><a href="#sec.signts.clientbindings">2.3. Client Policy Set Bindings</a></span></dt></dl></dd></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap.concepts"></a>1.&nbsp;Concepts</h2></div></div></div><p>
+WS-Policy is a very general framework for describing &ldquo;non-functional&rdquo; 
+requirements for web services. WS-Policy applies to many aspects
+of web services such as
+addressing, reliability, notifications, and most commonly, security.
+The power of this concept lies in the potential to apply these
+policies to applications without requiring changes to the application
+code. WS-Policy addresses a wide variety of requirements in a vendor 
+neutral way. This has obvious benefits; but also leads to its commonly
+cited drawback: its complexity and abstraction levels often discourage 
+its adoption.
+</p><p>
+Since this document only addresses WS-Security, it often uses the terms 
+WS-Policy and WS-Security interchangeably.
+</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.concepts.whatandhow"></a>1.1.&nbsp;What versus How</h3></div></div></div><p>
+  WS-Security documents, in order to be general enough to apply in a 
+  platform-neutral way, are restricted to 
+  <span class="emphasis"><em>what</em></span> is to be done. Examples of &ldquo;what&rdquo; include 
+  &ldquo;encrypt this field&rdquo; or &ldquo;add a time stamp and sign it.&rdquo; But when it
+  comes to implementing these mandates, there is still the question of 
+  <span class="emphasis"><em>how</em></span>.
+  The most common examples of "how" are &ldquo;how is an encryption key to be 
+  procured&rdquo; or &ldquo;how is a certificate verified to be trustworthy&rdquo; or "how 
+  is a certificate to be specified in a SOAP payload". In 
+  WebSphere Application Server (<acronym class="acronym">WAS</acronym>), 
+  this separation of concerns is implemented with 
+  policy sets and policy set bindings. 
+  </p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.concepts.protandauth"></a>1.2.&nbsp;Protection versus Authentication</h3></div></div></div><p>
+  The WS-Security configuration panels often distinguish between 
+  protection tokens and authentication tokens. 
+  In this context, protection refers to protecting the message from 
+  eavesdropping and/or corruption (whether accidental or malicious). 
+  Eavesdropping is addressed by encryption.
+  Message corruption is addressed by signatures. 
+  In this document these tokens are asymmetric X.509 binary security tokens.
+  </p><p>
+  Authentication tokens contain identity information. This identity 
+  information may be encrypted and/or signed. It conveys to the provider 
+  the identity on behalf of whom the request is executing.
+  </p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.concepts.callbacks"></a>1.3.&nbsp;Callback Handlers</h3></div></div></div><p>
+  The WAS security runtime uses a framework to apply the same processing 
+  pattern to similar scenarios. But while the high-level processing is the
+  same, details about the input can vary widely. A common example is the 
+  authentication process. One can authenticate via a user ID and password, 
+  a SAML assertion, an LTPA token, an SSL certificate, or others. Each of 
+  these types of authentication have a callback handler class associated 
+  with it. When specifying which authentication to use, the callback handler 
+  class is specified for processing and the callback class is populated with 
+  the input. Each callback handler expects input in the form of its associated 
+  callback.
+  </p><p>
+  This concept appears often in WS-Security configuration panels. 
+  When confronted with a callback handler configuration, 
+  it's just a way to pass data into the framework process. 
+  For WS-Security panels, this is used to convey the key and trust store 
+  information.
+  </p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.concepts.mustunderstand"></a>1.4.&nbsp;Must Understand</h3></div></div></div><p>
+  WS-Security headers support a 
+  <code class="sgmltag-attribute">mustUnderstand</code>
+  attribute. If this attribute is set to "<code class="sgmltag-attvalue">1</code>", 
+  it means all intermediaries must be able to process the security information.
+  If a signature is included, the intermediaries must be able to verify it. 
+  If intermediaries are not required to process the security token, 
+  then this attribute should have a value of "<code class="sgmltag-attvalue">0</code>" 
+  or the attribute must be absent 
+  (zero is assumed when absent).
+  </p><p>
+  By default, a WS-Security binding configuration will add 
+  <code class="code">mustUnderstand="1"</code>. 
+  To override this default requires a custom property set on the binding. 
+  This location for this custom property in the WAS admin console is 
+  <span class="guimenu">Services</span> &rarr; <span class="guimenuitem">General client policy set bindings</span> &rarr; <span class="guimenuitem">(binding)</span> &rarr; <span class="guimenuitem">WS-Security</span> &rarr; <span class="guimenuitem">Custom properties</span>.
+  </p><p>
+  The <span class="guilabel">mustUnderstand</span> custom property is defined under 
+  <span class="guilabel">Outbound Custom Properties</span> 
+  and is named 
+  </p><pre class="programlisting">com.ibm.wsspi.wssecurity.config.request.setMustUnderstand</pre><p>
+  </p><p>
+  Another useful custom property for the client bindings is defined under 
+  <span class="guilabel">Inbound Custom Properties</span>. 
+  It determines whether the "consumer" requires a timestamp on the response. 
+  Its name is
+  </p><pre class="programlisting">com.ibm.wsspi.wssecurity.consumer.timestampRequired</pre><p>
+  </p><p>
+  Since this property is defined on the inbound section for a client, 
+  it is referring to a response (from the provider). 
+  By default this property value is 1; meaning the provider must sign sign a return 
+  time stamp or the response will be rejected. 
+  This restriction may be relaxed by setting this value to 0.
+  </p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.concepts.apps"></a>1.5.&nbsp;Application Code Requirements</h3></div></div></div><p>
+  WS-Security policies can only be applied to Java bindings implemented with JAX-WS.
+  They cannot be applied to JAX-RPC bindings.
+  Services implemented with JAX-WS bindings will appear under 
+  <span class="guimenu">Services</span> &rarr; <span class="guimenuitem">Service providers</span>. 
+  Service provides are always considered to be managed.
+  </p><p>
+  JAX-WS client bindings can be either managed or non-managed, 
+  depending on how they are packaged and initialized. 
+  
+  A JAX-WS client is only managed if it is retrieved via a local JNDI reference. 
+  Obtaining a JAX- WS service reference through either direct instantiation or
+  through global JNDI look-up are not managed.
+  Non-managed JAX-WS clients cannot have WS-Security policy applied to them
+  because they bypass the required WAS runtime hooks.
+  </p><p>
+  Managed JAX-WS client have to be declared through either the
+  <code class="code">@WebServiceRef</code> annotation or the 
+  <code class="sgmltag-element">service-ref</code> 
+  entry in a deployment descriptor.
+  The <code class="code">@WebServiceRef</code> annotation is the more convenient option. 
+  But scanning for this annotation is restricted to EJB classes, Servlet classes, 
+  JAX-WS handler classes, and some service endpoint implementations. 
+  Moreover, it is not always practical to add <code class="code">@WebServiceRef</code>
+  annotations to every class in which a service client is required.
+  </p><p>
+  Web application projects can have a 
+  <code class="sgmltag-element">service-ref</code>
+  element to their <code class="filename">web.xml</code> deployment descriptor.
+  The following is how such an entry would look for the CC example consumer 
+  web application.
+  </p><pre class="programlisting">
+ &lt;service-ref&gt;
+   &lt;service-ref-name&gt;service/CCService&lt;/service-ref-name&gt;
+   &lt;service-interface&gt;org.acme.cc.jaxws.CCService&lt;/service-interface&gt;
+ &lt;/service-ref&gt;</pre><p>
+  This works when the JAX-WS client binding classes are packaged within 
+  the WAR project, either directly compiled to the classes directory or
+  included as a JAR file in 
+  <code class="filename">WEB-INF/lib</code>. 
+  But if the JAX-WS client bindings are packaged as a utility JAR included 
+  within the EAR file, an extra element is needed in the deployment descriptor.
+  </p><pre class="programlisting">
+ &lt;service-ref&gt;
+   &lt;service-ref-name&gt;service/CCService&lt;/service-ref-name&gt;
+   &lt;service-interface&gt;org.acme.cc.jaxws.CCService&lt;/service-interface&gt;
+   &lt;service-qname xmlns:pfx="urn:issw:bare:wssec:cc:query"&gt;pfx:CCService&lt;/service-qname&gt;
+ &lt;/service-ref&gt;</pre><p>
+  The <code class="sgmltag-element">service-qname</code> element allows the local
+  reference look-up to successfully determine the QName for the client
+  binding service class. The <code class="code">xmlns:pfx</code> attribute is a 
+  namespace declaration. The value should be the namespace declared for 
+  your service element of the relevant WSDL document.
+  </p></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap.body"></a>2.&nbsp;Implementation</h2></div></div></div><p>
+  The signatures described here are considered protection tokens 
+  for the purpose of configuration within the WAS admin console. In our 
+  app-to-app scenario, the signature is doubling as an authentication 
+  mechanism of sorts, since only the possessor of the private key could have 
+  signed the message. But don't let this secondary usage misguide you when 
+  working through the policy set binding panels. The signature scenario 
+  exclusively deals with protection tokens, not authentication tokens.
+  </p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.signts.keystores"></a>2.1.&nbsp;Key Stores</h3></div></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.signts.keystores.consumer"></a>2.1.1.&nbsp;Service Consumer</h4></div></div></div><p>
+  The service consumer requires a key store containing a private/public
+  key pair that identifies the service consumer application. The public 
+  key will be extracted so that it may be provided to the consumer for 
+  the purpose establishing trust.
+  </p><p>
+  This key store, key alias, and password will be configured in the general 
+  client policy bindings as a reference to a managed key store. The scripting 
+  burden of the WS-Security configuration would be eased if the key store and 
+  key alias names could be consistent among environments.
+  </p></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.signts.keystores.provider"></a>2.1.2.&nbsp;Service Provider</h4></div></div></div><p>
+  The service provider requires a trust store containing the signer certificates 
+  that the provider is willing to accept.
+  For this WS-Security configuration, this amounts to the CCConsumer public certificate.
+  </p><p>
+  As with the service consumer case, choosing a consistent name for trust store 
+  simplifies the scripting of the service provider policy set bindings.
+  </p></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.signts.policyset"></a>2.2.&nbsp;The Policy Set</h3></div></div></div><p>
+A policy set is a set of WS-Policy documents. 
+As mentioned in <a class="xref" href="#sec.concepts.whatandhow" title="1.1.&nbsp;What versus How">Section&nbsp;1.1</a>, 
+a policy document addresses what is to be done or enforced. 
+Since both ends of a consumer-provider channel must agree on this, 
+the policy document is usually shared between both parties.
+</p><p>
+In the present case, the policy document will specify the signing 
+of a time stamp. Later sections address policy set bindings that 
+configure role and environment specific configurations, 
+mostly to do with key stores.
+</p><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.signts.policyset.create"></a>2.2.1.&nbsp;Policy Set Creation</h4></div></div></div><p>
+  The following steps show how to create a policy set that specifies
+  </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+      A timestamp to be added to the WS-Security header
+    </li><li class="listitem">
+      the timestamp to be signed
+    </li></ul></div><p>
+  This policy set is simple enough to create from scratch.
+  </p><div class="procedure"><ol class="procedure" type="1"><li class="step"><p>
+    In the WAS admin console, navigate to
+    <span class="guimenu">Services</span> &rarr; <span class="guimenuitem">Policy sets</span> &rarr; <span class="guimenuitem">Application Policy sets</span>.
+    </p></li><li class="step"><p>
+    Click the <span class="guibutton">New</span> button.
+    </p></li><li class="step"><p>
+    For <span class="guilabel">Name</span>, enter <code class="literal">Sign Timestamp</code>.
+    </p></li><li class="step"><p>
+    For <span class="guilabel">Description</span>, enter
+    <code class="literal">Add a timestamp to the SOAP security header and sign it.</code>
+    </p></li><li class="step"><p>
+    In the <span class="guilabel">Policies</span> section,
+    click the <span class="guibutton">New</span> button
+    and select <span class="guimenuitem">WS-Security</span>.
+    This will cause a <span class="guilabel">WS-Security</span> link to appear in the list.
+    </p></li><li class="step"><p>Click the <span class="guilabel">WS-Security</span> link.</p></li><li class="step"><p>
+    Click the <span class="guilabel">main policy</span> link.
+    </p><p>
+    This panel holds all settings for the WS-Security policy.  The
+    <span class="guilabel">Message level protection</span> box should already be checked.
+    In the present case, all we wish to do is add a timestamp and sign it.  We
+    will remove the other items.
+    </p><div class="figure"><a name="fig.signts.policy.main"></a><p class="title"><b>Figure&nbsp;1.&nbsp;Main Policy Panel</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/signtsPolicy01.png" width="100%" alt="Main Policy Panel"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+    The checkbox <span class="guilabel">Include timestamp in security header</span>
+    should already be checked.
+    </p></li><li class="step"><p>
+    Click the <span class="guilabel">Request message part protection</span> link.
+    </p></li><li class="step"><p>
+    Under <span class="guilabel">Encrypted parts</span>,
+    select <span class="guilabel">app_encparts</span> and click the
+    <span class="guibutton">Delete</span>.
+    We remove the encrypted parts because we will not be encrypting the
+    payload at the message level.
+    </p></li><li class="step"><p>
+    Under <span class="guilabel">Signed parts</span>,
+    select <span class="guilabel">app_signparts</span>
+    and click <span class="guibutton">Edit</span>.
+    </p><div class="figure"><a name="fig.signts.policy.signparts"></a><p class="title"><b>Figure&nbsp;2.&nbsp;Message parts to sign</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/signtsPolicy02.png" width="100%" alt="Message parts to sign"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+  By default there are five signed parts specified:
+  three general parts and two timestamp parts at the bottom.
+  Remove the top three parts compresed of the Body and two
+  WS-Addressing QName parts.
+  You should be left with two XPath expression parts for the timestamp:
+  one for SOAP 1.1 and one for SOAP 1.2.
+  </p></li><li class="step"><p>
+  Click <span class="guibutton">OK</span> for the signed parts and
+  <span class="guibutton">Done</span> for the request message part protection.
+  </p></li><li class="step"><p>
+  Click <span class="guilabel">Asymmetric signature and encryption policies</span>.
+  Verify that <span class="guilabel">X.509</span> is chosen for the
+  Message Integrity Policy
+  section as shown in <a class="xref" href="#fig.signts.policy.sigpolicies" title="Figure&nbsp;3.&nbsp;Asymmetric signature and encryption policies">Figure&nbsp;3</a>.
+  </p><div class="figure"><a name="fig.signts.policy.sigpolicies"></a><p class="title"><b>Figure&nbsp;3.&nbsp;Asymmetric signature and encryption policies</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/signtsPolicy03.png" width="100%" alt="Asymmetric signature and encryption policies"></td></tr></table></div></div></div><br class="figure-break"><p>
+  If they are not present, click the <span class="guibutton">Action</span> drop-down
+  menu and select <span class="guimenuitem">Add X.509 Type</span>.
+  Choose the version shown in <a class="xref" href="#fig.signts.policy.x509type" title="Figure&nbsp;4.&nbsp;Add X.509 Type">Figure&nbsp;4</a>.
+  </p><div class="figure"><a name="fig.signts.policy.x509type"></a><p class="title"><b>Figure&nbsp;4.&nbsp;Add X.509 Type</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="30%"><tr><td><img src="images/signtsPolicy04.png" width="100%" alt="Add X.509 Type"></td></tr></table></div></div></div><br class="figure-break"></li></ol></div><p>
+This completes the specification of the request message protection.
+</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+  The default algorithms are fine; but may be adjusted.
+  If you choose this section, only adjust the
+  <span class="guilabel">Algorithm suite</span>.
+  Do not change the <span class="guilabel">Canonicalization algorithm</span>
+  or the <span class="guilabel">XPath version</span> unless you know what
+  you're doing.
+  </p></li><li class="listitem"><p>
+  There are no request or response tokens for this configuration.
+  </p></li></ul></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.signts.policyset.importexport"></a>2.2.2.&nbsp;Policy Set Export and Import</h4></div></div></div><p>
+  A policy set is usually shared between consumer and provider instances
+  as well as among different environments.
+  It is usually created once and exported; 
+  then imported wherever else it is needed.
+  </p><p>
+  To export the <code class="classname">Sign Timestamp</code> policy, navigate to
+  <span class="guimenu">Services</span> &rarr; <span class="guimenuitem">Policy sets</span> &rarr; <span class="guimenuitem">Application policy sets</span>.
+  Check the box next to <span class="guilabel">Sign Timestamp</span> and click the
+  <span class="guibutton">Export</span> button at the top.  This will reveal a
+  <span class="guilabel">Sign Timestamp.zip</span> link.  Click this link to
+  download the policy set export.
+  </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td valign="top" align="center" rowspan="2" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td valign="top" align="left"><p>
+  Because "Sign Timestamp" contains a space in the name for readability,
+  the admin console will supply a default file name of
+  <code class="filename">Sign Timestamp.zip</code>.
+  Scripting will be simplified if this space is removed from the file name.
+  This space will still be preserved for the policy name after import into
+  other WAS cells.
+  </p></td></tr></table></div><p>
+  Here are the steps to import a policy set.
+  </p><div class="procedure"><ol class="procedure" type="1"><li class="step"><p>
+  In the admin console, navigate to 
+  <span class="guimenu">Services</span> &rarr; <span class="guimenuitem">Policy sets</span> &rarr; <span class="guimenuitem">Application policy sets</span>.
+  </p></li><li class="step"><p>
+  Click the <span class="guibutton">Import</span> button and select
+  <span class="guilabel">From Selected location</span>.
+  </p></li><li class="step"><p>
+  Click the <span class="guibutton">Browse</span> button and select the
+  policy set archive.
+  </p></li><li class="step"><p>
+  Click <span class="guibutton">OK</span>.
+  </p></li></ol></div><p>
+  </p><p>
+  The imported policy set should now appear in the list of
+  application policy sets.
+  </p></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.signts.clientbindings"></a>2.3.&nbsp;Client Policy Set Bindings</h3></div></div></div><p>
+The client policy set bindings for the CCConsumerApp application
+specifies how the consumer application will sign the SOAP payload
+elements required by the policy set.  This amounts to specifying
+</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+a key store along with the alias of the key used to sign the request,
+</li><li class="listitem">
+how the corresponding certificate is to be identified.
+</li></ul></div><p>
+These concepts are illustrated below in 
+<a class="xref" href="#fig.signts.clientbindings.concepts" title="Figure&nbsp;5.&nbsp;Client binding concepts">Figure&nbsp;5</a>
+as objects in a WAS configuration.
+</p><div class="figure"><a name="fig.signts.clientbindings.concepts"></a><p class="title"><b>Figure&nbsp;5.&nbsp;Client binding concepts</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/clientBindingsConcepts.jpg" width="100%" alt="Client binding concepts"></td></tr></table></div></div></div><br class="figure-break"><p>
+The <em class="firstterm">protection token</em> object references a key store and
+contains properties for specifying the alias of the relevant key in the key
+store along with a key store password.
+It represents a private key in the configuration.
+</p><p>
+The <em class="firstterm">key info</em> object determines how information about
+the key will be added to the payload.  Examples include referring to the
+certificate's serial number, the certificate's SHA1 thumbprint, or just
+including the entire certificate as base64-encoded text.
+In addition to specifying how the key will be referenced in the payload, 
+it also includes a reference to the key itself through through a reference 
+to the associated protection token object.
+</p><p>
+The <em class="firstterm">request message protection</em> object binds the 
+protection token and key info into a single configuration.
+Only when key info objects are referenced by a request message protection
+object are they "activated" by the binding.
+</p><p>
+The objects in <a class="xref" href="#fig.signts.clientbindings.concepts" title="Figure&nbsp;5.&nbsp;Client binding concepts">Figure&nbsp;5</a> are
+configured in the WAS admin console by navigating to
+  <span class="guimenu">Services</span> &rarr; <span class="guimenuitem">Policy sets</span> &rarr; <span class="guimenuitem">General client policy set bindings</span>.
+  After selecting from the particular binding, click the
+  <span class="guimenu">WS-Security</span> link.
+  unfortunately not all objects are available from the same panel.
+  <a class="xref" href="#fig.signts.clientbindings.overlay" title="Figure&nbsp;6.&nbsp;Client binding concepts overlayed on screen shot">Figure&nbsp;6</a> gathers together
+  the three screens needed for this configuration with the conceptual
+  objects from <a class="xref" href="#fig.signts.clientbindings.concepts" title="Figure&nbsp;5.&nbsp;Client binding concepts">Figure&nbsp;5</a>
+  superimosed on them for reference.
+</p><div class="figure"><a name="fig.signts.clientbindings.overlay"></a><p class="title"><b>Figure&nbsp;6.&nbsp;Client binding concepts overlayed on screen shot</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/clientBindingsOverlay.jpg" width="100%" alt="Client binding concepts overlayed on screen shot"></td></tr></table></div></div></div><br class="figure-break"><p>
+  The WS-Security panel is shown at the top of
+  <a class="xref" href="#fig.signts.clientbindings.overlay" title="Figure&nbsp;6.&nbsp;Client binding concepts overlayed on screen shot">Figure&nbsp;6</a>.
+  The <span class="guilabel">Authentication and protection</span> link navigates to the
+  panel on the left.
+  The <span class="guilabel">Keys and certificates</span> link navigates to the panel
+  on the right.
+  The direction of the arrows in 
+  <a class="xref" href="#fig.signts.clientbindings.overlay" title="Figure&nbsp;6.&nbsp;Client binding concepts overlayed on screen shot">Figure&nbsp;6</a>
+  convey the direction of references.
+  So the objects must be configured in the reverse order of the arrows so that
+  the references may be resolved.
+</p><div class="procedure"><ol class="procedure" type="1"><li class="step">Configure a managed key store as described in 
+       <a class="xref" href="#sec.signts.keystores.consumer" title="2.1.1.&nbsp;Service Consumer">Section&nbsp;2.1.1</a>.
+  </li><li class="step">Create a protection token object referencing the key store.</li><li class="step">Create a key info object referencing the protection token.</li><li class="step">Create a request message protection object referencing the key
+    info object.
+  </li><li class="step">Add custom properties.</li></ol></div><p>
+  The panel for the last item is not shown in 
+  <a class="xref" href="#fig.signts.clientbindings.overlay" title="Figure&nbsp;6.&nbsp;Client binding concepts overlayed on screen shot">Figure&nbsp;6</a>.
+  But the <span class="guilabel">Custom properties</span> link to its panel is
+  shown near the top.
+</p></div></div></div></body></html>
