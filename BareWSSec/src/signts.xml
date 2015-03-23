@@ -442,4 +442,218 @@ configured in the WAS admin console by navigating to
   But the <guilabel>Custom properties</guilabel> link to its panel is
   shown near the top.
 </para>
+
+<section xml:id="sec.signts.clientbindings.creation">
+  <info>
+    <title>Creation</title>
+  </info>
+<para>
+These instruction show how to create a client policy set binding from scratch
+the supports the signing of a timestamp.
+It presupposes the configuration of a managed key store named CCConsumerkeyStore
+that holds the signer key and certificate.
+The alias for the signer certificate is ccconsumer.
+</para>
+<procedure>
+  <step><para>
+    In the Admin Console navigate to
+    <menuchoice>
+      <guimenu>Services</guimenu>
+      <guimenuitem>Policy sets</guimenuitem>
+      <guimenuitem>General client policy set bindings</guimenuitem>
+    </menuchoice>.
+  </para></step>
+  <step><para>Click the <guibutton>New</guibutton> button.</para></step>
+  <step><para>
+    For <guilabel>Bindings configuration name</guilabel>, enter
+    <literal>CCConsumerBindings</literal>.
+  </para></step>
+  <step><para>
+    For <guilabel>Description</guilabel>, enter
+    <literal>Specify key and key info to generate a signature for a timestamp</literal>.
+  </para></step>
+  <step><para>
+    In the empty list of policies, click the <guibutton>Add</guibutton> button and select
+    <guilabel>WS-Security</guilabel> from the dropdown list.
+    </para>
+    <para>
+    This reveals the four sections for the message security policy bindings.  This will
+    be the starting point for much of the binding configuration and will henceforth be
+    referred to as the <firstterm>bindings list of four</firstterm>.
+  </para></step>
+  <step><para>
+    Select the <guilabel>Authentication and protection</guilabel> link from the
+    bindings list of four.
+  </para></step>
+  <step><para>
+    Under <guilabel>Protection tokens</guilabel> click the <guibutton>New token</guibutton>
+    button and select <guilabel>Token generator</guilabel>.  The client is a token generator
+    (instead of consumer) because the client provides the signature of the timestamp.
+  </para></step>
+  <step><para>
+    For <guilabel>Name</guilabel>, enter <literal>gen_signx509token</literal>.
+    </para><para>
+    This name can be arbitrary.  For this scenario, we stick to the convention used by the
+    sample bindings included with WAS.  The "<literal>gen</literal>" portion of the name
+    refers to its role as a token generator ("<literal>con</literal>" for consumer is an
+    alternative).  The "<literal>sign</literal>" portion designates the role of a signatue
+    signer ("<literal>enc</literal>" for encryption is the alternative).
+  </para></step>
+  <step><para>
+    For <guilabel>Token type</guilabel>, select <guilabel>X509V3 v1.0</guilabel>.
+  </para></step>
+  <step><para>
+    Click the <guibutton>OK</guibutton> button.
+    This adds the entry to the list of protection tokens.
+    But it still requies additional configuration.
+    So click the <guilabel>gen_signx509token</guilabel> link under protection tokens.
+  </para></step>
+  <step><para>
+    Near the bottom under <guilabel>Additional Bindings</guilabel>,
+    click the <guilabel>Callback handler</guilabel> link.
+  </para></step>
+  <step><para>
+    Under the <guilabel>Keystore</guilabel> section,
+    choose the <guilabel>CCConsumerKeyStore</guilabel> managed key store created earlier.
+    Since it should only have a single key pair, the <guilabel>Name</guilabel> and
+    <guilabel>Alias</guilabel> are populated automatically.
+    You must still provide the password.
+  </para></step>
+  <step><para>
+    Click <guibutton>OK</guibutton> twice and <guilabel>save</guilabel> the configuration.
+    </para><para>
+    At this point, your binding configuration ha sspecified the key to use for the signature
+    (the policy set determined what to sign).
+    When the service provider receives the signature, it needs a way to determine what
+    certificate to use for verification.
+    This information is called the <firstterm>key info</firstterm> and there are several
+    standards-based ways to specify it.
+    We specify the embedded token option in the next steps.
+  </para></step>
+  <step><para>
+    Navigate back to the <guilabel>General client policy set bindings</guilabel> panel of
+    Step 1.
+    You should see the new <guilabel>CCConsumerBindings</guilabel> entry.
+  </para></step>
+  <step><para>
+    Click <guilabel>Keys and certificates</guilabel>.
+  </para></step>
+  <step><para>
+    Under the <guilabel>Key information</guilabel> section, click <guilabel>New Outbound</guilabel>.
+    We choose outbound because the signature will be outbound from the consumer.
+  </para></step>
+  <step><para>
+    For <guilabel>Name</guilabel>, enter <literal>gen_signkeyinfo</literal>.
+  </para></step>
+  <step><para>
+    For <guilabel>Type</guilabel>, select <guilabel>Embedded token</guilabel> from the dropdown list.
+  </para></step>
+  <step><para>
+    For <guilabel>Token generator or consumer name</guilabel>, 
+    choose the <guilabel>gen_signx509token</guilabel> key entry created in the previous section.
+    </para><para>
+    Since we are developing this binding from scratch, it should be the only entry available.
+    If instead we had copied a sample binding to modify, there would be many entries available
+    and we must take care to choose the right one.
+  </para></step>
+  <step><para>
+    Click <guibutton>OK</guibutton> and <guilabel>save</guilabel>.
+    </para><para>
+    At this point you have specified a key for signing the timestamp and specified how the key
+    identity is to be conveyed.
+  </para></step>
+  <step><para>
+    Navigate back to the binding list of four (click <guilabel>WS-Security</guilabel> in the
+    bread-crumb tail at the top) and select <guilabel>Authentication and protection</guilabel>.
+    </para><para>
+    You'll see the key definition we created earlier under <guilabel>Protection tokens</guilabel>.
+    It references a particular key in a key store.  This protection token was itself referenced
+    in the previous section by a key info object (Step 19).  
+    These definitions by themselves do activate them.
+    To be active, they must be referenced by either a request or response message protection object.
+  </para></step>
+  <step><para>
+    Under <guilabel>Request message signature and encryption protection</guilabel>,
+    click the <guibutton>New Signature</guibutton> button.
+  </para></step>
+  <step><para>
+    For <guilabel>Name</guilabel>, enter <literal>asymmetric-signingInfoRequest</literal>.
+  </para></step>
+  <step><para>
+    For <guilabel>Signing key information</guilabel>, choose <guilabel>gen_signkeyinfo</guilabel>
+    from the dropdown list.
+    This was the key info we created earlier and should be the only choice available.
+  </para></step>
+  <step><para>
+    Click the link labeled <guilabel>Signed part reference default</guilabel>.
+  </para></step>
+  <step><para>
+    In the <guilabel>URL</guilabel> field, select
+    <guilabel>http://www.w3.org/2001/10/xml-exc-c14n#</guilabel>.
+  </para></step>
+  <step><para>
+    Click <guibutton>OK</guibutton> and <guilabel>save</guilabel>.
+  </para></step>
+  <step><para>
+    Navigate back to the bindings list of four and select <guilabel>Custom properties</guilabel>.
+    We use two custom properties to specify that not all intermediaries are required to understand
+    the signatures and that the client does not require a signed timestamp on the response.
+  </para></step>
+  <step><para>
+    Under <guilabel>Inbound Custom Properties</guilabel>, 
+    set the following property to <literal>0</literal>:
+    </para><para>
+    <literal>com.ibm.wsspi.wssecurity.consumer.timestampRequired</literal>
+  </para></step>
+  <step><para>
+    Under the <guilabel>Outbound Custom Properties</guilabel>,
+    set the following property to <literal>0</literal>:
+    </para><para>
+    <literal>com.ibm.wsspi.wssecurity.config.request.setMustUnderstand</literal>
+  </para>
+  <figure xml:id="fig.signts.clientbindings.customprops">
+  <title>Client binding concepts overlayed on screen shot</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/clientBindingsCustomProperties.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/clientBindingsCustomProperties.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+  </figure>
+  </step>
+  <step><para>
+    Click <guibutton>OK</guibutton> and <guilabel>save</guilabel>.
+  </para></step>
+</procedure>
+</section>
+
+<section xml:id="sec.signts.clientbindings.export">
+  <info>
+    <title>Export and Import</title>
+  </info>
+<para>
+  Exporting a client bindings is useful for backup and scripting.
+  It is not typically shared with other client systems since policy set bindings are
+  particular to their environment.
+  In the present case, a managd key store is the only external reference.
+  The external reference requires the following three items.
+</para>
+  <itemizedlist>
+    <listitem>the name of the managed key store</listitem>
+    <listitem>the password for the managed key store</listitem>
+    <listitem>the alias of the signer key</listitem>
+  </itemizedlist>
+<para>
+  Importing a client binding configuration will require that these match with an existing
+  key store of that these items be adusted to an existing key store.
+</para>
+<para>
+  To export a client binding configuration, simply check the box next to its entry and
+  click the <guibutton>Export</guibutton> button.
+  A link will be provided for starting the download.
+</para>
+</section>
+
 </section>
