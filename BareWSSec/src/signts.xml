@@ -657,3 +657,369 @@ The alias for the signer certificate is ccconsumer.
 </section>
 
 </section>
+
+<section xml:id="sec.signts.providerbindings">
+  <info>
+    <title>Provider Policy Set Bindings</title>
+  </info>
+  
+<para>
+  The provider policy set bindings for the CCProviderApp application specify how the
+  provider application will verify the signed SOAP payload elements required by the
+  policy set.
+  This amounts to specifying a trust store containing the trusted signer certificates.
+  <xref linkend="fig.signts.providerbindings.concepts"/>
+  illustrates the WAS configuration objects needed to specify the trust store.
+  It's a lot of overhead to simply specify a trust store.  It's the price of the
+  abstraction layer that accounts for all the different kinds of supported
+  WS-Security scenarios.
+</para>
+
+  <figure xml:id="fig.signts.providerbindings.concepts">
+  <title>Provider Bindings Concepts</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/providerBindingsConcepts.jpg" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/providerBindingsCconcepts.jpg" width="5in"/>
+    </imageobject>
+  </mediaobject>
+  </figure>
+
+<para>
+  As with the client bindings case in <xref linkend="sec.signts.clientbindings"/>,
+  the order of configuration is determined by the references.
+  The steps follow the arrows in reverse order.
+</para>
+
+<procedure>
+  <step>
+    Create a trust store a described in <xref linkend="sec.signts.keystores"/>.
+  </step>
+  <step>
+    Create the trust store anchor object that references the managed trust store.
+  </step>
+  <step>
+    Create the protection token object that references the trust anchor.
+  </step>
+  <step>
+    Create the key info object that references the protection token.
+  </step>
+  <step>
+    Create the request message protection object that references the key info.
+  </step>
+</procedure>
+
+<para>
+  The <firstterm>request message protection</firstterm> object determines which
+  objects are active when the provider binding is assigned to a service.
+  There are request and response types as well as signature and encryption types.
+  For the present case, a request signature type is used.
+</para>
+<para>
+  The <firstterm>key info</firstterm> object is used to determine how to specify
+  the certificate for generated requests.
+  Since this is a provider configuration that will consume the token, no such 
+  specification is needed.  Only a token generator has to specfy this.  The
+  only configuration in the key info for the provider is the protection token
+  reference.
+</para>
+<para>
+  The <firstterm>protection token</firstterm> references key stores and trust
+  stores.  In this configuration it references a trust anchor object.
+  It can also reference standalone certificates in the absense of a trust store.
+</para>
+<para>
+  A <firstterm>trust anchor</firstterm> object is a reference to a managed
+  trust store.
+</para>
+<para>
+  These objects are configured in the WAS admin console by navigating to  
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>Policy sets</guimenuitem>
+    <guimenuitem>General provider policy set bindings</guimenuitem>
+  </menuchoice>.
+  After selecting the particular binding, click the
+  <guilabel>WS-Security</guilabel> link. 
+  Unfortunately not all objects are available from the same panel.
+  <xref linkend="fig.signts.providerbindings.overlay"/>
+  gathers together three screens needed for this configuration with the
+  objects from
+  <xref linkend="fig.signts.providerbindings.concepts"/>
+  superimposed on them for reference.
+</para>
+  
+<figure xml:id="fig.signts.providerbindings.overlay">
+  <title>Provider binding concepts overlayed on screen shot</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/providerBindingsOverlay.jpg" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/providerBindingsOverlay.jpg" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+
+<para>
+  The <guilabel>WS-Security</guilabel> panel is shown at the top of
+  <xref linkend="fig.signts.providerbindings.overlay"/>.
+  From there one may navigate to either
+</para>
+<itemizedlist>
+  <listitem>Authentication and protection</listitem>
+  <listitem>Keys and certificates</listitem>
+</itemizedlist>
+<para>
+  Because the references cross between the two panels, one must maneuver
+  between the panels to establish the references in the proper order.
+</para>
+
+<section xml:id="sec.signts.providerbindings.creation">
+  <info>
+    <title>Creation</title>
+  </info>
+
+<para>
+  These instructions show how to create a provider policy set binding from
+  scratch that supports the signing of the timestamp.
+  It presupposes the configuration of a managed trust store named
+  CCProviderStore that holds the trusted signer certificates.
+</para>
+<procedure>
+<step><para>
+  In the WAS admin console, navigate to 
+  <menuchoice>
+    <guimenu>Services</guimenu>
+    <guimenuitem>Policy sets</guimenuitem>
+    <guimenuitem>General provider policy set bindings</guimenuitem>
+  </menuchoice>.
+</para></step>
+<step><para>
+  Click the <guibutton>New</guibutton> button.
+</para></step>
+<step><para>
+  For <guilabel>Binding configuration name</guilabel>, enter
+  <literal>CCProviderBindings</literal>.
+</para></step>
+<step><para>
+  For <guilabel>Description</guilabel>, enter
+  <literal>Specify trust info to verify a signature for a timestamp.</literal>
+</para></step>
+<step><para>
+  In the empty list of policies, click the <guibutton>Add</guibutton> button
+  and select <guilabel>WS-Security</guilabel> from the dropdown list.
+  </para>
+  
+<figure xml:id="fig.signts.providerbindings.top">
+  <title>Provider binding concepts overlayed on screen shot</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ProviderBindingsTop.png" width="40%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ProviderBindingsTop.png" width="3in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+
+  <para>
+  This reveals the five sections<footnote>
+  <para>
+    The client bindings had four items here;
+    the additional provider link is <guilabel>Caller</guilabel>.
+  </para>
+  </footnote>
+  for the message security policy bindings.
+  This will be the starting point for much of the binding configuration and
+  will henceforth be referred to as the
+  <firstterm>bindings list of five</firstterm>.
+</para></step>
+<step><para>
+  Select <guilabel>Keys and certificates</guilabel> link from the bindings
+  list of five.
+</para></step>
+<step><para>
+  Under <guilabel>Trust anchor</guilabel>,
+  click the <guibutton>New</guibutton> button.
+</para></step>
+<step><para>
+  For <guilabel>Name</guilabel>, enter
+  <literal>CCProviderTrustStore</literal>.
+</para></step>
+<step><para>
+  Select the radio button labeled <guibutton>Centrally managed keystore</guibutton>
+  and select the <guilabel>CCProviderTrustStore</guilabel> trust store you
+  created earlier from the list.
+  
+<figure xml:id="fig.signts.providerbindings.truststore">
+  <title>Provider binding truststore</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ProviderBindingsTrustStore.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ProviderBindingsTrustStore.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+
+</para></step>
+<step><para>
+  Click <guibutton>OK</guibutton> and <guilabel>save</guilabel> the configuration.
+</para></step>
+<step><para>
+  Click <guilabel>WS-Security</guilabel> from the bread-crumb links at the top and
+  click the <guilabel>Authentication and protection</guilabel> link from the
+  bindings list of five.
+</para></step>
+<step><para>
+  Under <guilabel>Protection tokens</guilabel> click the <guibutton>New token</guibutton>
+  button and select <guilabel>Token consumer</guilabel>.
+  This provider is a token consumer (not generator) because the provider verifies the
+  signature of the timestamp.
+</para></step>
+<step><para>
+  For <guilabel>Name</guilabel>, enter <literal>con_signx509token</literal>.
+  </para>
+  <para>
+  This name is arbitrary.  For this scenario, we stick to the convention used by the
+  sample bindings shipped with WAS.
+  The "con" portion of the name refers to the role as a token consumer
+  ("<literal>gen</literal>" for generator is the alternative).
+  The "<literal>sign</literal>" portion designates the role of a signature signer
+  ("<literal>enc</literal>" for encryption is the alternative).
+</para></step>
+<step><para>
+  For <guilabel>Token type</guilabel>,
+  select <guilabel>X509V3 Token v1.0</guilabel>.
+</para></step>
+<step><para>
+  Click the <guibutton>OK</guibutton> button.
+  This adds the entry to the list of protected tokens.
+  But it still requires additional configuration.
+  So click the <guilabel>con_signx509token</guilabel> link under the protected tokens.
+</para></step>
+<step><para>
+  Near the bottom under <guilabel>Additional Bindings</guilabel>,
+  click the <guilabel>Callback handler</guilabel> link.
+</para></step>
+<step><para>
+  Under the <guilabel>Certificates</guilabel> section,
+  select the second radio button and choose Trusted anchor store
+  <guilabel>CCProviderTrustStore</guilabel> configured earlier.
+</para></step>
+<step><para>
+  Click <guibutton>OK</guibutton> twice and <guilabel>save</guilabel>
+  the configuration.
+  </para><para>
+  At the point your binding configuration has specified the key store to use 
+  for verifying the signature (the policy set determined what to sign).
+</para></step>
+<step><para>
+  Click the <guilabel>WS-Security</guilabel> from the bread-crumb links at the
+  top and click the <guilabel>Keys and certificates</guilabel> link.
+</para></step>
+<step><para>
+  Under the <guilabel>Key information</guilabel> section, click
+  <guilabel>New Inbound</guilabel>.  We choose inbound because the 
+  signature we be inbound from the provider perspective.
+</para></step>
+<step><para>
+  For <guilabel>Name</guilabel>, enter
+  <literal>con_signkeyinfo</literal>.
+  </para><para>
+  Note there is no <guilabel>Type</guilabel> for the key info object as in the
+  client bindings.  The provider has to make due with whatever the client sends.
+</para></step>
+<step><para>
+  For <guilabel>Token generator or consumer name</guilabel>, choose the
+  <guilabel>con_signx509token</guilabel> key entry created in the previous
+  section.
+  </para><para>
+  Since we are developing the bindings from scratch, it should be the only option
+  available.  If instead we had copied a sample binding to modify, there would
+  be many entries available and we must take care to choose the right one.
+</para></step>
+<step><para>
+  Click <guibutton>OK</guibutton> and <guilabel>save</guilabel>.
+</para></step>
+<step><para>
+  Navigate back to the binding list of four 
+  (click <guilabel>WS-Security</guilabel> in the bread-crumb trail at the top)
+  and select <guilabel>Authentication and protection</guilabel>.
+</para></step>
+<step><para>
+  Under <guilabel>Request message signature and encryption protection</guilabel>,
+  click the <guibutton>New Signature</guibutton> button.
+</para></step>
+<step><para>
+  For <guilabel>Name</guilabel>, enter
+  <literal>asymmetreic-signingInfoRequest</literal>.
+</para></step>
+<step><para>
+  For <guilabel>Signing key information</guilabel>,
+  choose <guilabel>con_signkeyinfo</guilabel> from the dropdown list
+  and click <guibutton>Add</guibutton>.
+  This was the key info we created earlier and should be the only choice available.
+</para></step>
+<step><para>
+  Click the <guibutton>OK</guibutton> button at the bottom.
+</para></step>
+<step><para>
+  Click back into the <guilabel>asymmetric-signingInfoRequest</guilabel>
+  that was just created.
+</para></step>
+<step><para>
+  Click the link at the bottom labeled
+  <guilabel>Signed part reference default</guilabel>.
+</para></step>
+<step><para>
+  Click the <guibutton>New</guibutton>.
+</para></step>
+<step><para>
+  In the <guilabel>URL</guilabel> field,
+  select <guilabel>http://www.w3.org/2001/10/xml-exc-c14n#</guilabel>.
+</para></step>
+<step><para>
+  Click <guibutton>OK</guibutton> and <guilabel>save</guilabel>.
+</para></step>  
+</procedure>
+<para>
+  There are no custom properties required for the provider.
+  Only the client bindings require custom properties.
+</para>
+</section>
+
+<section xml:id="sec.signts.providerbindings.exportimport">
+  <info>
+    <title>Export and Import</title>
+  </info>
+
+<para>
+  Exporting a provider binding is useful for backup and scripting.
+  It is not typically shared with other systems since policy set
+  bindings are particular to their environment.
+  In the present case, a managed trust store is the only external
+  reference.
+  The external reference requires the following two items.
+</para>
+  <itemizedlist>
+    <listitem>the name of the managed trust store</listitem>
+    <listitem>the password for the managed trust store</listitem>
+  </itemizedlist>
+<para>
+  Importing a proivder binding configuration will require that these
+  match with an existing trust store or that these items be adjusted
+  to the existing trust store.  
+</para>
+<para>
+  To export a provider binding configuration, simply check the box
+  next to its entry and click the <guibutton>Export</guibutton> button.
+  A link will be provided for starting the download.
+</para>
+</section>
+
+</section>
