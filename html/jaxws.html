@@ -11,13 +11,13 @@ body { background-image: url('images/draft.png');
         distributed in both stand-alone and in collection form.  The
         latest renderings and source are available on GitHub at
         <a class="link" href="http://pglezen.github.io/was-config" target="_top">http://pglezen.github.io/was-config</a>.
-      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt><dt><span class="section"><a href="#sec.jaxws.servers">1.2. JAX-WS Servers</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N102A5">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
+      </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#sec.chap1">1. Bare JAX-WS Web Services</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients">1.1. JAX-WS Clients</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.clients.thin">1.1.1. Thin Clients</a></span></dt><dt><span class="section"><a href="#sec.jaxws.clients.managed">1.1.2. Managed Clients</a></span></dt></dl></dd><dt><span class="section"><a href="#sec.jaxws.servers">1.2. JAX-WS Servers</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.jaxws.servers.rad">1.2.1. Using the Java Bindings Wizard</a></span></dt></dl></dd></dl></dd><dt><span class="section"><a href="#sec.listings">2. Source Listings</a></span></dt><dd><dl><dt><span class="section"><a href="#sec.listings.ccQuery.wsdl">2.1. <code class="filename">ccQuery.wsdl</code></a></span></dt><dt><span class="section"><a href="#sec.listings.AccountQueryEJB.java">2.2. <code class="filename">AccountQueryEJB.java</code></a></span></dt></dl></dd><dt><span class="section"><a href="#N103F4">3. References</a></span></dt></dl></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.chap1"></a>1.&nbsp;Bare JAX-WS Web Services</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.clients"></a>1.1.&nbsp;JAX-WS Clients</h3></div></div></div><p>
 <span class="bold"><strong>J</strong></span>ava 
 <span class="bold"><strong>A</strong></span>PI for 
 <span class="bold"><strong>X</strong></span>ML - 
 <span class="bold"><strong>W</strong></span>eb 
 <span class="bold"><strong>S</strong></span>ervices 
-(JAX-WS) is a specification that addresses
+(JAX-WS) is a specification <a class="xref" href="#ref.JAX-WS-1.2" title="JAX-WS 1.2 Specification">[3]</a> that addresses
 Java web services development.  For web service clients, this amounts to
 generating Java client service stubs and XML bindings for use in invoking
 the web service.  <a class="xref" href="#fig.jaxws.client.overview" title="Figure&nbsp;1.&nbsp;JAX-WS Overview">Figure&nbsp;1</a> illustrates how
@@ -249,6 +249,12 @@ public class Main {
     will be only one such definition.  Examples of when there might be
     more are when there are multiple port-types or multiple SOAP bindings
     (1.1 and 1.2) for a single port-type.
+    </p><p>
+    Section 4.2.3 of the JAX-WS specification <a class="xref" href="#ref.JAX-WS-1.2" title="JAX-WS 1.2 Specification">[3]</a>
+    warns us that these proxy types are not guaranteed to be thread safe.
+    Some vendor implementations opt to provide a thread-safe implementation.
+    But the specificaton does not require it; so appropriate care must be taken 
+    when executing in multithreaded environments.
     </p></td></tr><tr><td align="left" valign="top" width="5%"><p><a name="callout.thinclient.bp"></a><a href="#code.thinclient.bp"><span><img border="0" alt="3" src="images/callouts/3.png"></span></a> </p></td><td align="left" valign="top"><p>
     The cast from a <code class="classname">CCPortType</code> to a
     <code class="classname">BindingProvider</code> may seem dangerous since
@@ -256,16 +262,142 @@ public class Main {
     <code class="classname">BindingProvider</code>.  But the JAX-WS specification
     requires that the implementation of <code class="classname">CCPortType</code>
     returned by the <code class="classname">getCCPort()</code> method also
-    implement the <code class="classname">BindingProvider</code> interface.
+    implement the <code class="classname">BindingProvider</code> interface
+    as shown in <a class="xref" href="#fig.jaxws.bindingprovider.1" title="Figure&nbsp;2.&nbsp;JAX-WS Binding Provider">Figure&nbsp;2</a>.
     </p></td></tr><tr><td align="left" valign="top" width="5%"><p><a name="callout.thinclien.invoke"></a><a href="#code.thinclient.invoke"><span><img border="0" alt="4" src="images/callouts/4.png"></span></a> </p></td><td align="left" valign="top"><p>
     This line is the actual remote invocation.
     </p></td></tr></table></div><p>
 </p><p>
 The <code class="classname">javax.xml.ws.BindingProvider</code> interface is key to the
 ability to dynamically set the remot endpoint.  This and other capabitlities are
-described in Section 4.2.1 on the JAX-WS 2.1 specification 
-<a class="xref" href="#ref.JAX-WS-1.2" title="JAX-WS 1.2 Specification">[3]</a>.
-</p></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.servers"></a>1.2.&nbsp;JAX-WS Servers</h3></div></div></div><p>
+described in Section 4.2.1 on the JAX-WS 2.1 specification
+<a class="xref" href="#ref.JAX-WS-1.2" title="JAX-WS 1.2 Specification">[3]</a>.  
+<a class="xref" href="#fig.jaxws.bindingprovider.1" title="Figure&nbsp;2.&nbsp;JAX-WS Binding Provider">Figure&nbsp;2</a> comes from the JAX-WS 2.1 specification.
+It illustrates the relationship between the
+<code class="classname">BindingProvider</code> and the request context.
+</p><div class="figure"><a name="fig.jaxws.bindingprovider.1"></a><p class="title"><b>Figure&nbsp;2.&nbsp;JAX-WS Binding Provider</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/BindingProvider.jpg" width="100%" alt="JAX-WS Binding Provider"></td></tr></table></div></div></div><br class="figure-break"><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="sec.jaxws.clients.managed"></a>1.1.2.&nbsp;Managed Clients</h4></div></div></div><p>
+Managed clients are typically invoked by JEE components that 
+rely on a server administrator for
+the configuration of the web service client.  A JEE
+infrastructure administrator determines properties such as target URLs
+and timeouts.  The instantiation of the client service object is
+typically injected into a field annotated with
+<code class="classname">@WebServiceRef</code>.
+</p><div class="example"><a name="ex.jaxws.client.ref.1"></a><p class="title"><b>Example&nbsp;2.&nbsp;JAX-WS Client Annotations</b></p><div class="example-contents"><pre class="programlisting">   @Resource(name="MockCC", description="Stub the remote CC call")
+   Boolean mockCC = false;
+   
+   @WebServiceRef(name="jaxwsCC") CCService ccService;
+   CCPortType account = null;</pre></div></div><br class="example-break"><p>
+In the code snippet above, two variables are declared with the help of annotations.
+The first one is a <code class="classname">@Resource</code> annotation used to inject a
+<code class="classname">Boolean</code> value into <code class="classname">mockCC</code>.
+This determines whether our application returns a mock object implementation or
+actually attempts a remote invocation.  This technique is very useful in web
+service client implementations since one cannot always rely on the service provider
+being available.
+</p><p>
+A <code class="classname">CCService</code> instance is injected at initialization time.
+The <code class="classname">CCPortType</code> instance is populated in intialization code.
+For an EJB, this would likely be a method annotated with
+<code class="classname">@PostConstruct</code>.
+</p><div class="example"><a name="ex.jaxws.client.PostConstruct.1"></a><p class="title"><b>Example&nbsp;3.&nbsp;EJB PostConstruct Method</b></p><div class="example-contents"><pre class="programlisting">   @PostConstruct
+   void initDelegate() {
+      log.entering(CLASSNAME, "initDelegate");
+      if (mockCC) {
+         log.warning("Mock is set to true. Using mock imlementation of delegate.");
+         account = new AccountQueryMock();
+         log.fine("AccountQueryMock instance created.");
+      } else {
+         account = ccService.getCCService();
+         log.fine("AccountQueryDelegate instance created.");
+      }
+      log.exiting(CLASSNAME, "initDelegate");
+   }</pre></div></div><br class="example-break"><p>
+The <code class="classname">mockCC</code> value is used to determine whether to create a
+mock implementation of the delegate or a remote proxy implementation.
+(The full listing for this managed sample is in
+<a class="xref" href="#sec.listings.AccountQueryEJB.java" title="2.2.&nbsp;AccountQueryEJB.java">Section&nbsp;2.2</a>.)
+Make sure to log the fact that a mock object is being used instead of a true
+remote object.  Moreover, the mock implementation should also log the fact
+it runs for every method request.  It should be logged at the info level so
+that its involvement is clear for every request
+(in <code class="filename">SystemOut.log</code>).
+Otherwise one could easily forget that mocking is enabled and precipitate
+all kinds of backend fire drills.
+</p><p>
+The mock setting can be adjusted in the WAS admin console in the following way.
+</p><div class="procedure"><a name="N101DA"></a><p class="title"><b>Procedure&nbsp;1.&nbsp;Modify Mock Behavior</b></p><ol class="procedure" type="1"><li class="step"><p>
+  Login to the WAS admin console and navigate to the application panel.
+  A sample application panel is shown in 
+  <a class="xref" href="#fig.jaxws.admin.1" title="Figure&nbsp;3.&nbsp;CC Consumer Application Panel">Figure&nbsp;3</a>.
+  </p><div class="figure"><a name="fig.jaxws.admin.1"></a><p class="title"><b>Figure&nbsp;3.&nbsp;CC Consumer Application Panel</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/ccConsumerAppAdmin1.png" width="100%" alt="CC Consumer Application Panel"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+  Click the link labeled
+  <span class="guilabel">Environment entries for EJB modules</span>
+  as indicated in <a class="xref" href="#fig.jaxws.admin.1" title="Figure&nbsp;3.&nbsp;CC Consumer Application Panel">Figure&nbsp;3</a>
+</p></li><li class="step"><p>
+  You can provide the <span class="guilabel">MockCC</span> value in the table
+  as shown in <a class="xref" href="#fig.jaxws.admin.2" title="Figure&nbsp;4.&nbsp;CC Consumer EJB Mock Environment Entry">Figure&nbsp;4</a>.  Notice that the
+  values of the <span class="guilabel">Name</span> and 
+  <span class="guilabel">Description</span> columns correspond to the 
+  <span class="property">name</span> and <span class="property">description</span>
+  attributes of the <code class="classname">@Resource</code> annotation
+  for the <code class="classname">mockCC</code> field in
+  ???.
+  </p><div class="figure"><a name="fig.jaxws.admin.2"></a><p class="title"><b>Figure&nbsp;4.&nbsp;CC Consumer EJB Mock Environment Entry</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/ccConsumerAppAdmin2.png" width="100%" alt="CC Consumer EJB Mock Environment Entry"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+  Click <span class="guilabel">OK</span> and save the changes.
+</p></li></ol></div><p>
+The save operation will cause the application to restart so that the
+new value is immediately effective.  This does <span class="emphasis"><em>not</em></span>
+cause the JVM to restart.  The restart should only take a few seconds
+for a properly written application.
+</p><p>
+Another common JAX-WS administrative task is to 
+<span class="emphasis"><em>change the target endpoint</em></span>.
+The default endpoint is specified in the WSDL from which the bindings were
+generated.  Since the endpoint is rarely known and WSDL design time and
+can change across environments, it is often simply set to
+<code class="literal">localhost</code>.
+Developers will often override this using their own proprietary schema
+via a property file somewhere on the file system.  Once the endpoint
+host name is known, it can be set on the web service binding provider
+just as in the unmanaged case in ???.
+A drawback to this technique is that the property file must be consistent
+across each machine in the cluster.  Moreover, a WAS admin must understand
+each application-specific JAX-WS customization technique.
+</p><p>
+The target endpoint can be managed through the WAS admin console
+(this is a <span class="emphasis"><em>managed</em></span> client after all!).  If the
+application doesn't override the endpoint host and port, the endpoint
+can be set following these steps.
+</p><div class="procedure"><a name="N10243"></a><p class="title"><b>Procedure&nbsp;2.&nbsp;Modify JAX-WS Endpoint Destination</b></p><ol class="procedure" type="1"><li class="step"><p>
+ In the WAS admin console, navigate to the application panel.
+</p></li><li class="step"><p>
+ Select the <span class="guilabel">Manage Modules</span> link.
+</p></li><li class="step"><p>
+ Select the module containing the JAX-WS client.
+</p></li><li class="step"><p>
+ Click the <span class="guilabel">Web service client bindings</span> link
+ shown in <a class="xref" href="#fig.jaxws.admin.3" title="Figure&nbsp;5.&nbsp;Module with Client Bindings">Figure&nbsp;5</a>.
+ </p><div class="figure"><a name="fig.jaxws.admin.3"></a><p class="title"><b>Figure&nbsp;5.&nbsp;Module with Client Bindings</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/ccConsumerAppAdmin3.png" width="100%" alt="Module with Client Bindings"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+ From the list of bindings, choose the one corresponding to the
+ <code class="classname">@WebServiceRef</code> annotation in
+ <a class="xref" href="#ex.jaxws.client.ref.1" title="Example&nbsp;2.&nbsp;JAX-WS Client Annotations">Example&nbsp;2</a>.  The <span class="property">name</span>
+ attribute of the annotation should match the <span class="guilabel">Web Service</span>
+ column in the table of <a class="xref" href="#fig.jaxws.admin.4" title="Figure&nbsp;6.&nbsp;Client Binding List">Figure&nbsp;6</a>.  From
+ this row, click the <span class="guilabel">Edit</span> link in the 
+ <span class="guilabel">Port Information</span> column.
+ </p><div class="figure"><a name="fig.jaxws.admin.4"></a><p class="title"><b>Figure&nbsp;6.&nbsp;Client Binding List</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/ccConsumerAppAdmin4.png" width="100%" alt="Client Binding List"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+  Enter the full endpoint address in the column labeled
+  <span class="guilabel">Overridden Endpoint URL</span> as shown in
+  <a class="xref" href="#fig.jaxws.admin.5" title="Figure&nbsp;7.&nbsp;JAX-WS Endpoint Override">Figure&nbsp;7</a>.
+  </p><div class="figure"><a name="fig.jaxws.admin.5"></a><p class="title"><b>Figure&nbsp;7.&nbsp;JAX-WS Endpoint Override</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/ccConsumerAppAdmin5.png" width="100%" alt="JAX-WS Endpoint Override"></td></tr></table></div></div></div><br class="figure-break"></li><li class="step"><p>
+  Click the <span class="guibutton">OK</span> and save.
+</p></li></ol></div><p>
+The <span class="guilabel">Save</span> action will restart the application.
+The new new destination will become immediately effective.  Remember this
+only works if the client code does not override the BindingProvider
+settings as done in <a class="xref" href="#ex.thin.main" title="Example&nbsp;1.&nbsp;Main.java">Example&nbsp;1</a>.
+</p></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.jaxws.servers"></a>1.2.&nbsp;JAX-WS Servers</h3></div></div></div><p>
 JAX-WS XML bindings for the server are no different than they are for the client.
 When using <span class="command"><strong>wsimport</strong></span> from the command line, there is no difference
 in the appearance of the output.  The difference is 
@@ -305,23 +437,23 @@ workstation.  The WAS runtime libraries are available from a local WAS
 installation on which you intend to run your local tests.
 </p><p>
 Follow these steps to register your WAS installation with RAD installation.
-</p><div class="procedure"><a name="N101BA"></a><p class="title"><b>Procedure&nbsp;1.&nbsp;Register WAS runtime with RAD</b></p><ol class="procedure" type="1"><li class="step"><p>Open the preferences window to
+</p><div class="procedure"><a name="N102F1"></a><p class="title"><b>Procedure&nbsp;3.&nbsp;Register WAS runtime with RAD</b></p><ol class="procedure" type="1"><li class="step"><p>Open the preferences window to
   <span class="guimenu">Window</span> &rarr; <span class="guimenuitem">Prferences</span>
   and navigate to
   <span class="guimenu">Server</span> &rarr; <span class="guimenuitem">Runtime Environment</span>.
   This should reveal the currently available server runtime environment as
-  shown in <a class="xref" href="#fig.rad.prefs.servers.1" title="Figure&nbsp;2.&nbsp;Initial Server Runtimes">Figure&nbsp;2</a>.
-  </p><div class="figure"><a name="fig.rad.prefs.servers.1"></a><p class="title"><b>Figure&nbsp;2.&nbsp;Initial Server Runtimes</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref01.png" width="100%" alt="Initial Server Runtimes"></td></tr></table></div></div></div><br class="figure-break"><p>
+  shown in <a class="xref" href="#fig.rad.prefs.servers.1" title="Figure&nbsp;8.&nbsp;Initial Server Runtimes">Figure&nbsp;8</a>.
+  </p><div class="figure"><a name="fig.rad.prefs.servers.1"></a><p class="title"><b>Figure&nbsp;8.&nbsp;Initial Server Runtimes</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref01.png" width="100%" alt="Initial Server Runtimes"></td></tr></table></div></div></div><br class="figure-break"><p>
   If this is the first runtime you've cataloged, you will only see the
   Web Preview Server Runtime.
   </p></li><li class="step">Click the <span class="guibutton">Add</span> in 
-     <a class="xref" href="#fig.rad.prefs.servers.1" title="Figure&nbsp;2.&nbsp;Initial Server Runtimes">Figure&nbsp;2</a>.
+     <a class="xref" href="#fig.rad.prefs.servers.1" title="Figure&nbsp;8.&nbsp;Initial Server Runtimes">Figure&nbsp;8</a>.
   </li><li class="step"><p>
     Select <span class="guilabel">WebSphere Application Server v8.5</span> from
     the list of available server adapters as shown in
-    <a class="xref" href="#fig.rad.prefs.servers.2" title="Figure&nbsp;3.&nbsp;Choose the WAS 8.5 Adapter">Figure&nbsp;3</a>.
-    </p><div class="figure"><a name="fig.rad.prefs.servers.2"></a><p class="title"><b>Figure&nbsp;3.&nbsp;Choose the WAS 8.5 Adapter</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref02.png" width="100%" alt="Choose the WAS 8.5 Adapter"></td></tr></table></div></div></div><br class="figure-break"><p>
-    If this selection is not available in <a class="xref" href="#fig.rad.prefs.servers.2" title="Figure&nbsp;3.&nbsp;Choose the WAS 8.5 Adapter">Figure&nbsp;3</a>,
+    <a class="xref" href="#fig.rad.prefs.servers.2" title="Figure&nbsp;9.&nbsp;Choose the WAS 8.5 Adapter">Figure&nbsp;9</a>.
+    </p><div class="figure"><a name="fig.rad.prefs.servers.2"></a><p class="title"><b>Figure&nbsp;9.&nbsp;Choose the WAS 8.5 Adapter</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref02.png" width="100%" alt="Choose the WAS 8.5 Adapter"></td></tr></table></div></div></div><br class="figure-break"><p>
+    If this selection is not available in <a class="xref" href="#fig.rad.prefs.servers.2" title="Figure&nbsp;9.&nbsp;Choose the WAS 8.5 Adapter">Figure&nbsp;9</a>,
     it is because you did not install the WAS 8.5 test server component
     during your RAD install.  You must
     </p><ol type="a" class="substeps"><li class="step">download the WAS 8.5 test environment repository</li><li class="step">make it available to your IBM Installation Manager</li><li class="step">run the Installation Manager <span class="guibutton">Modify</span> command</li><li class="step">add the WAS 8.5 test environment in the wizard.</li></ol><p> 
@@ -332,13 +464,13 @@ Follow these steps to register your WAS installation with RAD installation.
     sure to note <a class="xref" href="#tip.server.runtime.name" title="Impact of Runtime Label on Team Development">Impact of Runtime Label on Team Development</a>.
     </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip: Impact of Runtime Label on Team Development"><tr><td valign="top" align="center" rowspan="2" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left"><a name="tip.server.runtime.name"></a>Impact of Runtime Label on Team Development</th></tr><tr><td valign="top" align="left"><p>
     The value of the <span class="guilabel">Name</span> field in 
-    <a class="xref" href="#fig.rad.prefs.servers.3" title="Figure&nbsp;4.&nbsp;Provide WAS 8.5 location">Figure&nbsp;4</a> 
+    <a class="xref" href="#fig.rad.prefs.servers.3" title="Figure&nbsp;10.&nbsp;Provide WAS 8.5 location">Figure&nbsp;10</a> 
     will be embedded in your project metadata where ever you declare 
     a dependency on it.  Other developers with whom you share projects
     may declare this differently.  When you share projects via source control,
     these dependencies won't resolve due to the name conflict.  It's helpful
     to make sure everyone on the team agrees to the same environment name.
-    </p></td></tr></table></div><div class="figure"><a name="fig.rad.prefs.servers.3"></a><p class="title"><b>Figure&nbsp;4.&nbsp;Provide WAS 8.5 location</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref03.png" width="100%" alt="Provide WAS 8.5 location"></td></tr></table></div></div></div><br class="figure-break"><p>
+    </p></td></tr></table></div><div class="figure"><a name="fig.rad.prefs.servers.3"></a><p class="title"><b>Figure&nbsp;10.&nbsp;Provide WAS 8.5 location</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref03.png" width="100%" alt="Provide WAS 8.5 location"></td></tr></table></div></div></div><br class="figure-break"><p>
    For the <span class="guilabel">Installation directory</span> field, enter the location
    of the WAS 8.5 installation on your workstation.  The <span class="guilabel">JRE</span>
    information will be completed automatically when you enter a valid WAS 8.5
@@ -346,15 +478,15 @@ Follow these steps to register your WAS installation with RAD installation.
    </p></li><li class="step"><p>
     Click <span class="guilabel">Finish</span>.  The result should be that the WAS 8.5
     installation appears in the <span class="guilabel">Server Runtime Environment</span>
-    panel as shown in <a class="xref" href="#fig.rad.prefs.servers.4" title="Figure&nbsp;5.&nbsp;Server runtimes with WAS 8.5">Figure&nbsp;5</a>.
-    </p><div class="figure"><a name="fig.rad.prefs.servers.4"></a><p class="title"><b>Figure&nbsp;5.&nbsp;Server runtimes with WAS 8.5</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref04.png" width="100%" alt="Server runtimes with WAS 8.5"></td></tr></table></div></div></div><br class="figure-break"><p>
+    panel as shown in <a class="xref" href="#fig.rad.prefs.servers.4" title="Figure&nbsp;11.&nbsp;Server runtimes with WAS 8.5">Figure&nbsp;11</a>.
+    </p><div class="figure"><a name="fig.rad.prefs.servers.4"></a><p class="title"><b>Figure&nbsp;11.&nbsp;Server runtimes with WAS 8.5</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref04.png" width="100%" alt="Server runtimes with WAS 8.5"></td></tr></table></div></div></div><br class="figure-break"><p>
     If you select the <span class="guilabel">WebSphere Application Server</span>
     entry in the preference navigation panel (just under
     <span class="guilabel">Runtime Environments</span>), you'll see the WAS 8.5
     entry is present in the top list of
-    <a class="xref" href="#fig.rad.prefs.servers.5" title="Figure&nbsp;6.&nbsp;WAS 8.5 Profiles">Figure&nbsp;6</a>.  Select the WAS 8.5 entry
+    <a class="xref" href="#fig.rad.prefs.servers.5" title="Figure&nbsp;12.&nbsp;WAS 8.5 Profiles">Figure&nbsp;12</a>.  Select the WAS 8.5 entry
     and the bottom list will display a list of profiles.
-    </p><div class="figure"><a name="fig.rad.prefs.servers.5"></a><p class="title"><b>Figure&nbsp;6.&nbsp;WAS 8.5 Profiles</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref05.png" width="100%" alt="WAS 8.5 Profiles"></td></tr></table></div></div></div><br class="figure-break"><p>
+    </p><div class="figure"><a name="fig.rad.prefs.servers.5"></a><p class="title"><b>Figure&nbsp;12.&nbsp;WAS 8.5 Profiles</b></p><div class="figure-contents"><div class="mediaobject"><table border="0" summary="manufactured viewport for HTML img" style="cellpadding: 0; cellspacing: 0;" width="70%"><tr><td><img src="images/eclipsePref05.png" width="100%" alt="WAS 8.5 Profiles"></td></tr></table></div></div></div><br class="figure-break"><p>
   From this panel you may choose to create a new WAS 8.5 profile for your
   development activities.
   </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td valign="top" align="center" rowspan="2" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td valign="top" align="left"><p>
@@ -372,16 +504,35 @@ JAR archive in Eclipse).
 But there is no such feature.  The closest we can come is to configure defaults
 for the emitter wizard that are as close as possible to what you want so you
 can lessen the likelihood of making an error.
+</p><p>
+In the RAD preferences window there are several navigation choices under
+<span class="guimenu">Web Services</span>.
+Not all of them apply to JAX-WS generation.
+The
+  <span class="guimenu">Web Services</span> &rarr; <span class="guimenuitem">Resource Management</span>.
+panel allows you to specify that 
 </p></div><div class="section"><div class="titlepage"><div><div><h5 class="title"><a name="sec.jaxws.servers.rad.wizard"></a>1.2.1.3.&nbsp;JAX-WS Emitter Wizard</h5></div></div></div><p>
-Before you can do much with the Java emmiter wizard you must define a server
-runtime.  This will usually be a WAS developer edition installation on your
-workstation.  To configure your WAS 
 To start the emitter wizard, right-click on the WSDL source file and select
   <span class="guimenu">Web Services</span> &rarr; <span class="guimenuitem">Generate Java Bean Skeleton</span>.
 The first panel is shown in <a class="xref" href="#">???</a>.
 The WSDL file name should already be populated if you started the emitter
 wizard by right-clicking the WSDL file.
-</p></div></div></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&nbsp;&nbsp;1 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+</p><p>
+The skeleton generanted by the RAD wizard is shown in the listing below.
+</p><pre class="programlisting">package org.acme.cc.jaxws;
+
+@javax.jws.WebService (endpointInterface="org.acme.cc.jaxws.CCPortType", 
+                       targetNamespace="urn:issw:bare:wssec:cc:query", 
+                       serviceName="CCService", 
+                       portName="CCService", 
+                       wsdlLocation="WEB-INF/wsdl/ccQuery.wsdl")
+public class CCSoapBindingImpl{
+
+    public QueryResponse query(QueryRequest parameters) throws QueryFaultMsg {
+        // TODO Auto-generated method stub
+        return null;
+    }
+}</pre></div></div></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec.listings"></a>2.&nbsp;Source Listings</h2></div></div></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.ccQuery.wsdl"></a>2.1.&nbsp;<code class="filename">ccQuery.wsdl</code></h3></div></div></div><pre class="programlisting">&nbsp;&nbsp;1 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &nbsp;&nbsp;&nbsp; &lt;wsdl:definitions targetNamespace="urn:issw:bare:wssec:cc:query" 
 &nbsp;&nbsp;&nbsp;                         xmlns:tns="urn:issw:bare:wssec:cc:query" 
 &nbsp;&nbsp;&nbsp;                         xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
@@ -465,7 +616,64 @@ wizard by right-clicking the WSDL file.
 &nbsp;&nbsp;&nbsp;     &lt;/wsdl:port&gt;
 &nbsp;&nbsp;&nbsp;   &lt;/wsdl:service&gt;
 &nbsp;&nbsp;&nbsp; &lt;/wsdl:definitions&gt;
-&nbsp;85 </pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N102A5"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
+&nbsp;85 </pre></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="sec.listings.AccountQueryEJB.java"></a>2.2.&nbsp;<code class="filename">AccountQueryEJB.java</code></h3></div></div></div><pre class="programlisting">&nbsp;&nbsp;1 package org.acme.cc.ejb;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp; import java.util.logging.Logger;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;5 import javax.annotation.PostConstruct;
+&nbsp;&nbsp;&nbsp; import javax.annotation.Resource;
+&nbsp;&nbsp;&nbsp; import javax.ejb.LocalBean;
+&nbsp;&nbsp;&nbsp; import javax.ejb.Stateless;
+&nbsp;&nbsp;&nbsp; import javax.xml.ws.WebServiceRef;
+&nbsp;10 
+&nbsp;&nbsp;&nbsp; import org.acme.cc.delegate.AccountQuery;
+&nbsp;&nbsp;&nbsp; import org.acme.cc.delegate.AccountQueryDelegate;
+&nbsp;&nbsp;&nbsp; import org.acme.cc.jaxws.CCPortType;
+&nbsp;&nbsp;&nbsp; import org.acme.cc.jaxws.CCService;
+&nbsp;15 import org.acme.cc.jaxws.QueryFaultMsg;
+&nbsp;&nbsp;&nbsp; import org.acme.cc.jaxws.QueryRequest;
+&nbsp;&nbsp;&nbsp; import org.acme.cc.jaxws.QueryResponse;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp; @Stateless
+&nbsp;20 @LocalBean
+&nbsp;&nbsp;&nbsp; public class AccountQueryEJB {
+&nbsp;&nbsp;&nbsp;    
+&nbsp;&nbsp;&nbsp;    public static final String CLASSNAME = AccountQueryEJB.class.getName();
+&nbsp;&nbsp;&nbsp;    private static final Logger log = Logger.getLogger(CLASSNAME);
+&nbsp;25    
+&nbsp;&nbsp;&nbsp;    @Resource(name="MockCC", description="Stub the remote CC call")
+&nbsp;&nbsp;&nbsp;    Boolean mockCC = false;
+&nbsp;&nbsp;&nbsp;    
+&nbsp;&nbsp;&nbsp;    @WebServiceRef(name="jaxwsCC") CCService ccService;
+&nbsp;30    CCPortType account = null;
+&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;    public AccountQueryEJB() {
+&nbsp;&nbsp;&nbsp;       log.entering(CLASSNAME, "ctor");
+&nbsp;&nbsp;&nbsp;       log.exiting(CLASSNAME, "ctor");
+&nbsp;35    }
+&nbsp;&nbsp;&nbsp;    
+&nbsp;&nbsp;&nbsp;    @PostConstruct
+&nbsp;&nbsp;&nbsp;    void initDelegate() {
+&nbsp;&nbsp;&nbsp;       log.entering(CLASSNAME, "initDelegate");
+&nbsp;40       if (mockCC) {
+&nbsp;&nbsp;&nbsp;          log.warning("Mock is set to true. Using mock imlementation of delegate.");
+&nbsp;&nbsp;&nbsp;          account = new AccountQueryMock();
+&nbsp;&nbsp;&nbsp;          log.fine("AccountQueryMock instance created.");
+&nbsp;&nbsp;&nbsp;       } else {
+&nbsp;45          account = ccService.getCCService();
+&nbsp;&nbsp;&nbsp;          log.fine("AccountQueryDelegate instance created.");
+&nbsp;&nbsp;&nbsp;       }
+&nbsp;&nbsp;&nbsp;       log.exiting(CLASSNAME, "initDelegate");
+&nbsp;&nbsp;&nbsp;    }
+&nbsp;50    
+&nbsp;&nbsp;&nbsp;    public QueryResponse query(QueryRequest request) throws QueryFaultMsg {
+&nbsp;&nbsp;&nbsp;       log.entering(CLASSNAME, "query");
+&nbsp;&nbsp;&nbsp;       QueryResponse response = account.query(request);
+&nbsp;&nbsp;&nbsp;       log.exiting(CLASSNAME, "query");
+&nbsp;55       return response;
+&nbsp;&nbsp;&nbsp;    }
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; </pre></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="N103F4"></a>3.&nbsp;References</h2></div></div></div><div class="bibliolist"><div class="bibliomixed"><a name="ref.WASInfoCenter"></a><p class="bibliomixed">[1] 
     <span class="title">WAS 8.0 Info Center</span>,
     <span class="author"><span class="orgname">IBM</span></span>.
     Online: 
