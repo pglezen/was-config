@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+  <title>Environment Resource References</title>
+</info>
+<para>
+An 
+<firstterm>environment resource reference</firstterm>
+allows a provider to organize a set of environment properties
+for customizing parts of the application infrastructure.
+It's analogous to a datasource, which provides a set of
+properties to be configured for each target database
+instance.  An environment resource reference is more general;
+it allows a user-defined set of properties to be defined
+by a user-defined class.  Then multiple sets of these 
+properties can configured into JNDI for look-up by applications.
+</para>
+<para>
+Configuring JAX-WS endpoints for managed JAX-WS clients is
+a good application of this technique.  The up-front 
+programming work
+involves defining the required 
+JNDI SPI (service provider interface)
+implementation and packaging it as a shared library for
+the relying applications.
+</para>

@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE article [
-  <!ENTITY author   SYSTEM "pfg.xml">
-  <!ENTITY body     SYSTEM "jaxws.xml">
-  <!ENTITY refs     SYSTEM "references.xml">
-  <!ENTITY ccwsdl   SYSTEM "listings/ccQuery.wsdl">
-  <!ENTITY thinmain SYSTEM "listings/Main.java">
+  <!ENTITY author      SYSTEM "pfg.xml">
+  <!ENTITY body        SYSTEM "jaxws.xml">
+  <!ENTITY refs        SYSTEM "references.xml">
+  <!ENTITY ccwsdl      SYSTEM "listings/ccQuery.wsdl">
+  <!ENTITY thinmain    SYSTEM "listings/Main.java">
+  <!ENTITY ejbPlainRef SYSTEM "listings/AccountQueryEJB.java">
 ]>
 <article xmlns="http://docbook.org/ns/docbook"
          xmlns:xlink="http://www.w3.org/1999/xlink">
   <info>
     <title>Bare JAX-WS</title>
-    <date>July, 2013</date>
+    <date>September, 2015</date>
     &author;
     <abstract>
       <para>
@@ -30,6 +31,11 @@
     <section xml:id="sec.listings.ccQuery.wsdl">
       <info><title><filename>ccQuery.wsdl</filename></title></info>
       <programlisting linenumbering="numbered">&ccwsdl;</programlisting>
+    </section>
+    
+    <section xml:id="sec.listings.AccountQueryEJB.java">
+      <info><title><filename>AccountQueryEJB.java</filename></title></info>
+      <programlisting linenumbering="numbered">&ejbPlainRef;</programlisting>
     </section>
   </section>
   &refs;

@@ -8,7 +8,7 @@
   <property name="dir.src"     location="src" />
   <property name="dir.images"  location="images" />  
   <property name="dir.docbook" location="softlinks/docbook" />
-  <property name="master.root" value="signts"/>
+  <property name="master.root" value="jaxws"/>
   <property name="master.file" value="${master.root}-master.xml"/>
 
   <target name="init">

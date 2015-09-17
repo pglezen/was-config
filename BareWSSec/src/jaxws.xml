@@ -15,7 +15,7 @@
 <emphasis role="bold">X</emphasis>ML - 
 <emphasis role="bold">W</emphasis>eb 
 <emphasis role="bold">S</emphasis>ervices 
-(JAX-WS) is a specification that addresses
+(JAX-WS) is a specification <xref linkend="ref.JAX-WS-1.2"/> that addresses
 Java web services development.  For web service clients, this amounts to
 generating Java client service stubs and XML bindings for use in invoking
 the web service.  <xref linkend="fig.jaxws.client.overview"/> illustrates how
@@ -247,6 +247,13 @@ for the <option>-classpath</option> option.
     more are when there are multiple port-types or multiple SOAP bindings
     (1.1 and 1.2) for a single port-type.
     </para>
+    <para>
+    Section 4.2.3 of the JAX-WS specification <xref linkend="ref.JAX-WS-1.2"/>
+    warns us that these proxy types are not guaranteed to be thread safe.
+    Some vendor implementations opt to provide a thread-safe implementation.
+    But the specificaton does not require it; so appropriate care must be taken 
+    when executing in multithreaded environments.
+    </para>
   </callout>
   <callout arearefs="code.thinclient.bp" id="callout.thinclient.bp">
     <para>
@@ -256,7 +263,8 @@ for the <option>-classpath</option> option.
     <classname>BindingProvider</classname>.  But the JAX-WS specification
     requires that the implementation of <classname>CCPortType</classname>
     returned by the <classname>getCCPort()</classname> method also
-    implement the <classname>BindingProvider</classname> interface.
+    implement the <classname>BindingProvider</classname> interface
+    as shown in <xref linkend="fig.jaxws.bindingprovider.1"/>.
     </para>
   </callout>
   <callout arearefs="code.thinclient.invoke" id="callout.thinclien.invoke">
@@ -269,9 +277,259 @@ for the <option>-classpath</option> option.
 <para>
 The <classname>javax.xml.ws.BindingProvider</classname> interface is key to the
 ability to dynamically set the remot endpoint.  This and other capabitlities are
-described in Section 4.2.1 on the JAX-WS 2.1 specification 
-<xref linkend="ref.JAX-WS-1.2"/>.
+described in Section 4.2.1 on the JAX-WS 2.1 specification
+<xref linkend="ref.JAX-WS-1.2"/>.  
+<xref linkend="fig.jaxws.bindingprovider.1"/> comes from the JAX-WS 2.1 specification.
+It illustrates the relationship between the
+<classname>BindingProvider</classname> and the request context.
 </para>
+  
+<figure xml:id="fig.jaxws.bindingprovider.1">
+  <title>JAX-WS Binding Provider</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/BindingProvider.jpg" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/BindingProvider.jpg" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+
+
+<section xml:id="sec.jaxws.clients.managed">
+<info>
+  <title>Managed Clients</title>
+</info>
+
+<para>
+Managed clients are typically invoked by JEE components that 
+rely on a server administrator for
+the configuration of the web service client.  A JEE
+infrastructure administrator determines properties such as target URLs
+and timeouts.  The instantiation of the client service object is
+typically injected into a field annotated with
+<classname>@WebServiceRef</classname>.
+</para>
+<example id="ex.jaxws.client.ref.1">
+  <title>JAX-WS Client Annotations</title>
+  <programlisting>   @Resource(name="MockCC", description="Stub the remote CC call")
+   Boolean mockCC = false;
+   
+   @WebServiceRef(name="jaxwsCC") CCService ccService;
+   CCPortType account = null;</programlisting>
+</example>
+<para>
+In the code snippet above, two variables are declared with the help of annotations.
+The first one is a <classname>@Resource</classname> annotation used to inject a
+<classname>Boolean</classname> value into <classname>mockCC</classname>.
+This determines whether our application returns a mock object implementation or
+actually attempts a remote invocation.  This technique is very useful in web
+service client implementations since one cannot always rely on the service provider
+being available.
+</para>
+<para>
+A <classname>CCService</classname> instance is injected at initialization time.
+The <classname>CCPortType</classname> instance is populated in intialization code.
+For an EJB, this would likely be a method annotated with
+<classname>@PostConstruct</classname>.
+</para>
+<!--
+  Make sure this snippet stays consistent with the listing in 
+  src/listings/AccountQueryEJB.java
+  -->
+<example id="ex.jaxws.client.PostConstruct.1">
+  <title>EJB PostConstruct Method</title>
+<programlisting>   @PostConstruct
+   void initDelegate() {
+      log.entering(CLASSNAME, "initDelegate");
+      if (mockCC) {
+         log.warning("Mock is set to true. Using mock imlementation of delegate.");
+         account = new AccountQueryMock();
+         log.fine("AccountQueryMock instance created.");
+      } else {
+         account = ccService.getCCService();
+         log.fine("AccountQueryDelegate instance created.");
+      }
+      log.exiting(CLASSNAME, "initDelegate");
+   }</programlisting>
+</example>
+<para>
+The <classname>mockCC</classname> value is used to determine whether to create a
+mock implementation of the delegate or a remote proxy implementation.
+(The full listing for this managed sample is in
+<xref linkend="sec.listings.AccountQueryEJB.java"/>.)
+Make sure to log the fact that a mock object is being used instead of a true
+remote object.  Moreover, the mock implementation should also log the fact
+it runs for every method request.  It should be logged at the info level so
+that its involvement is clear for every request
+(in <filename>SystemOut.log</filename>).
+Otherwise one could easily forget that mocking is enabled and precipitate
+all kinds of backend fire drills.
+</para>
+<para>
+The mock setting can be adjusted in the WAS admin console in the following way.
+</para>
+<procedure><title>Modify Mock Behavior</title>
+<step><para>
+  Login to the WAS admin console and navigate to the application panel.
+  A sample application panel is shown in 
+  <xref linkend="fig.jaxws.admin.1"/>.
+  </para>
+<figure xml:id="fig.jaxws.admin.1">
+  <title>CC Consumer Application Panel</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ccConsumerAppAdmin1.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ccConsumerAppAdmin1.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</step>
+<step><para>
+  Click the link labeled
+  <guilabel>Environment entries for EJB modules</guilabel>
+  as indicated in <xref linkend="fig.jaxws.admin.1"/>
+</para></step>
+<step><para>
+  You can provide the <guilabel>MockCC</guilabel> value in the table
+  as shown in <xref linkend="fig.jaxws.admin.2"/>.  Notice that the
+  values of the <guilabel>Name</guilabel> and 
+  <guilabel>Description</guilabel> columns correspond to the 
+  <property>name</property> and <property>description</property>
+  attributes of the <classname>@Resource</classname> annotation
+  for the <classname>mockCC</classname> field in
+  <xref linkref="ex.jaxws.client.ref.1"/>.
+  </para>
+
+<figure xml:id="fig.jaxws.admin.2">
+  <title>CC Consumer EJB Mock Environment Entry</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ccConsumerAppAdmin2.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ccConsumerAppAdmin2.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</step>
+<step><para>
+  Click <guilabel>OK</guilabel> and save the changes.
+</para></step>
+</procedure>
+
+<para>
+The save operation will cause the application to restart so that the
+new value is immediately effective.  This does <emphasis>not</emphasis>
+cause the JVM to restart.  The restart should only take a few seconds
+for a properly written application.
+</para>
+
+<para>
+Another common JAX-WS administrative task is to 
+<emphasis>change the target endpoint</emphasis>.
+The default endpoint is specified in the WSDL from which the bindings were
+generated.  Since the endpoint is rarely known and WSDL design time and
+can change across environments, it is often simply set to
+<literal>localhost</literal>.
+Developers will often override this using their own proprietary schema
+via a property file somewhere on the file system.  Once the endpoint
+host name is known, it can be set on the web service binding provider
+just as in the unmanaged case in <xref linked="ex.thin.main"/>.
+A drawback to this technique is that the property file must be consistent
+across each machine in the cluster.  Moreover, a WAS admin must understand
+each application-specific JAX-WS customization technique.
+</para>
+<para>
+The target endpoint can be managed through the WAS admin console
+(this is a <emphasis>managed</emphasis> client after all!).  If the
+application doesn't override the endpoint host and port, the endpoint
+can be set following these steps.
+</para>
+
+<procedure><title>Modify JAX-WS Endpoint Destination</title>
+<step><para>
+ In the WAS admin console, navigate to the application panel.
+</para></step>
+<step><para>
+ Select the <guilabel>Manage Modules</guilabel> link.
+</para></step>
+<step><para>
+ Select the module containing the JAX-WS client.
+</para></step>
+<step><para>
+ Click the <guilabel>Web service client bindings</guilabel> link
+ shown in <xref linkend="fig.jaxws.admin.3"/>.
+ </para>
+ 
+<figure xml:id="fig.jaxws.admin.3">
+  <title>Module with Client Bindings</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ccConsumerAppAdmin3.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ccConsumerAppAdmin3.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</step>
+
+<step><para>
+ From the list of bindings, choose the one corresponding to the
+ <classname>@WebServiceRef</classname> annotation in
+ <xref linkend="ex.jaxws.client.ref.1"/>.  The <property>name</property>
+ attribute of the annotation should match the <guilabel>Web Service</guilabel>
+ column in the table of <xref linkend="fig.jaxws.admin.4"/>.  From
+ this row, click the <guilabel>Edit</guilabel> link in the 
+ <guilabel>Port Information</guilabel> column.
+ </para>
+
+<figure xml:id="fig.jaxws.admin.4">
+  <title>Client Binding List</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ccConsumerAppAdmin4.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ccConsumerAppAdmin4.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</step>
+
+<step><para>
+  Enter the full endpoint address in the column labeled
+  <guilabel>Overridden Endpoint URL</guilabel> as shown in
+  <xref linkend="fig.jaxws.admin.5"/>.
+  </para>
+
+<figure xml:id="fig.jaxws.admin.5">
+  <title>JAX-WS Endpoint Override</title>
+  <mediaobject>
+    <imageobject condition="web">
+      <imagedata fileref="images/ccConsumerAppAdmin5.png" width="70%"/>
+    </imageobject>
+    <imageobject condition="print">
+      <imagedata fileref="images/ccConsumerAppAdmin5.png" width="5in"/>
+    </imageobject>
+  </mediaobject>
+</figure>
+</step>
+<step><para>
+  Click the <guibutton>OK</guibutton> and save.
+</para></step>
+</procedure>
+<para>
+The <guilabel>Save</guilabel> action will restart the application.
+The new new destination will become immediately effective.  Remember this
+only works if the client code does not override the BindingProvider
+settings as done in <xref linkend="ex.thin.main"/>.
+</para>
+</section>
 </section>
 
 <section xml:id="sec.jaxws.servers">
@@ -541,6 +799,17 @@ But there is no such feature.  The closest we can come is to configure defaults
 for the emitter wizard that are as close as possible to what you want so you
 can lessen the likelihood of making an error.
 </para>
+<para>
+In the RAD preferences window there are several navigation choices under
+<guimenu>Web Services</guimenu>.
+Not all of them apply to JAX-WS generation.
+The
+  <menuchoice>
+    <guimenu>Web Services</guimenu>
+    <guimenuitem>Resource Management</guimenuitem>
+  </menuchoice>.
+panel allows you to specify that 
+</para>
 
 </section>
 
@@ -552,9 +821,6 @@ can lessen the likelihood of making an error.
 <!-- the following should probably be a set of instructions -->  
   
 <para>
-Before you can do much with the Java emmiter wizard you must define a server
-runtime.  This will usually be a WAS developer edition installation on your
-workstation.  To configure your WAS 
 To start the emitter wizard, right-click on the WSDL source file and select
   <menuchoice>
     <guimenu>Web Services</guimenu>
@@ -564,6 +830,23 @@ The first panel is shown in <xref linkend="fig.jaxws.server.rad.wizard.panel1"/>
 The WSDL file name should already be populated if you started the emitter
 wizard by right-clicking the WSDL file.
 </para>
+<para>
+The skeleton generanted by the RAD wizard is shown in the listing below.
+</para>
+<programlisting>package org.acme.cc.jaxws;
+
+@javax.jws.WebService (endpointInterface="org.acme.cc.jaxws.CCPortType", 
+                       targetNamespace="urn:issw:bare:wssec:cc:query", 
+                       serviceName="CCService", 
+                       portName="CCService", 
+                       wsdlLocation="WEB-INF/wsdl/ccQuery.wsdl")
+public class CCSoapBindingImpl{
+
+    public QueryResponse query(QueryRequest parameters) throws QueryFaultMsg {
+        // TODO Auto-generated method stub
+        return null;
+    }
+}</programlisting>
 
 </section>
 
